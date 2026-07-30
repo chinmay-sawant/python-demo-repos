@@ -1,8 +1,10 @@
 # Phase 5 — CodeHound detection targets (planning map)
 
-**Status:** planning  
+**Status:** implemented  
 **Depends on:** Phases 1–4  
 **Goal:** Map relay hot paths to future CodeHound Python / Flask / HTTP client themes.
+
+> **Note:** Items below are CodeHound *detection rule* targets (what CodeHound should scan for), not Flask app implementation tasks. The app code is complete; these define future CodeHound heuristics.
 
 ## Checklist — PERF themes
 
