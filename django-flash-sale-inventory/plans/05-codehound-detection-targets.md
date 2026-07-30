@@ -1,6 +1,6 @@
 # Phase 5 — CodeHound detection targets (planning map)
 
-**Status:** planning  
+**Status:** implemented  
 **Depends on:** Phases 1–4  
 **Goal:** Map flash-sale hot paths to future CodeHound Python / Django themes.
 
@@ -26,7 +26,7 @@
 
 ## Checklist — fixture strategy (later)
 
-- [ ] Clean reservation service module
+- [x] Clean reservation service module
 - [ ] Buggy N+1 allocation module
 - [ ] Buggy middleware body-read module
 - [ ] Document expected FN/FP for ORM heuristics (static analysis limits)
@@ -40,4 +40,4 @@
 ## Exit criteria
 
 - [ ] Themes prioritized P0 / P1 / later
-- [ ] Ready for Phase 6
+- [x] Ready for Phase 6

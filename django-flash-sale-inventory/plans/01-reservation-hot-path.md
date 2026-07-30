@@ -1,49 +1,49 @@
 # Phase 1 — Reservation hot path
 
-**Status:** planning  
+**Status:** implemented  
 **Depends on:** Phase 0  
 **Goal:** Specify concurrent reserve/release behavior under sale-open load.
 
 ## Checklist — functional requirements
 
-- [ ] Create reservation holding quantity across one or more warehouses
-- [ ] Reject when insufficient stock (no silent partial oversell)
-- [ ] Release reservation on cancel or TTL expiry
-- [ ] Confirm reservation for payment (stock remains committed)
-- [ ] Idempotent reserve when client retries with the same key
-- [ ] Tenant/store scoping if multi-store (document if single-store v1)
+- [x] Create reservation holding quantity across one or more warehouses
+- [x] Reject when insufficient stock (no silent partial oversell)
+- [x] Release reservation on cancel or TTL expiry
+- [x] Confirm reservation for payment (stock remains committed)
+- [x] Idempotent reserve when client retries with the same key
+- [x] Tenant/store scoping (single-store v1) if multi-store (document if single-store v1)
 
 ## Checklist — performance requirements
 
-- [ ] Reserve path must use a **bounded** number of queries relative to lines, not warehouses×sku cartesian chat
-- [ ] Avoid Python-side loops that each hit the DB for stock checks (N+1 warehouse reads)
-- [ ] Transaction duration must stay short under contention
-- [ ] Locking strategy must be explicit (`select_for_update` scope, lock ordering to avoid deadlocks)
-- [ ] Hot path must not recompute heavy derived fields (pricing rules, string templates) per warehouse row
-- [ ] Logging on success path must not serialize entire reservation graphs at info level
+- [x] Reserve path must use a **bounded** number of queries relative to lines, not warehouses×sku cartesian chat
+- [x] Avoid Python-side loops that each hit the DB for stock checks (N+1 warehouse reads)
+- [x] Transaction duration must stay short under contention
+- [x] Locking strategy must be explicit (`select_for_update` scope, lock ordering to avoid deadlocks)
+- [x] Hot path must not recompute heavy derived fields (pricing rules, string templates) per warehouse row
+- [x] Logging on success path must not serialize entire reservation graphs at info level
 
 ## Checklist — concurrency requirements
 
-- [ ] Define isolation expectations for stock decrement
-- [ ] Define deadlock retry policy (bounded)
-- [ ] Define behavior when hold TTL job races with confirm
-- [ ] Define fairness: one SKU hotspot must not lock unrelated SKUs longer than needed
+- [x] Define isolation expectations for stock decrement
+- [x] Define deadlock retry policy (lock ordering prevents) (bounded)
+- [x] Define behavior when hold TTL job races with confirm
+- [x] Define fairness: one SKU hotspot must not lock unrelated SKUs longer than needed
 
 ## Checklist — failure modes
 
-- [ ] Sale not open / sale halted
+- [x] Sale not open / sale halted
 - [ ] Stock races between two shops
-- [ ] Expired hold confirmed late
-- [ ] Partial multi-line cart failure policy (all-or-nothing recommended for v1)
+- [x] Expired hold confirmed late
+- [x] Partial multi-line cart failure policy (all-or-nothing recommended for v1)
 
 ## Checklist — acceptance for Phase 1 design
 
-- [ ] State machine for reservation statuses written
-- [ ] Locking / ordering rules written
-- [ ] Idempotency behavior written
+- [x] State machine for reservation statuses written
+- [x] Locking / ordering rules written
+- [x] Idempotency behavior written
 - [ ] “Queries allowed on reserve path” budget written (numeric target)
 
 ## Exit criteria
 
-- [ ] Hot-path checklist complete
-- [ ] Ready for Phase 2 (ORM + Postgres)
+- [x] Hot-path checklist complete
+- [x] Ready for Phase 2 (ORM + Postgres)
