@@ -1,17 +1,17 @@
 # Phase 6 — Acceptance and pilot gate
 
-**Status:** planning  
+**Status:** implemented  
 **Depends on:** Phases 0–5  
 **Goal:** Requirements complete enough to implement or to drive CodeHound rules.
 
 ## Checklist — requirements completeness
 
-- [ ] Domain locked
-- [ ] Ingest/queue locked
-- [ ] Outbound delivery locked
-- [ ] Retry/payload cost locked
-- [ ] Persistence integrated locked
-- [ ] Detector themes prioritized
+- [x] Domain locked
+- [x] Ingest/queue locked
+- [x] Outbound delivery locked
+- [x] Retry/payload cost locked
+- [x] Persistence integrated locked
+- [x] Detector themes prioritized
 
 ## Checklist — pilot scenarios (when app exists)
 
@@ -29,12 +29,12 @@
 
 ## Checklist — open decisions
 
-- [ ] DB outbox vs external queue for v1
-- [ ] Attempt log sync vs batched
-- [ ] Primary HTTP library (`requests` vs alternatives)
-- [ ] Circuit breaker thresholds
+- [x] DB outbox vs external (DB outbox chosen) queue for v1
+- [x] Attempt log sync vs (sync) batched
+- [x] Primary HTTP library (requests) (`requests` vs alternatives)
+- [x] Circuit breaker thresholds (config-based)
 
 ## Exit criteria
 
-- [ ] Decisions closed or deferred with reason
-- [ ] Plans implementation-ready
+- [x] Decisions closed or deferred with reason with reason
+- [x] Plans implementation-ready

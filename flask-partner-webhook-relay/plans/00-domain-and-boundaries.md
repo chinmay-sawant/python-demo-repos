@@ -1,50 +1,50 @@
 # Phase 0 — Domain and boundaries
 
-**Status:** planning  
+**Status:** implemented  
 **Project:** `flask-partner-webhook-relay`  
 **Goal:** Lock a B2B webhook fan-out domain that stresses sync HTTP, retries, and integrated persistence.
 
 ## Checklist — domain lock
 
-- [ ] Confirm product name: **Partner webhook relay for B2B integration events**
-- [ ] Confirm upstream events: order / billing / shipment style notifications
-- [ ] Confirm downstream: many partner HTTPS endpoints with per-partner secrets
-- [ ] Confirm at-least-once delivery with idempotency keys for partners
-- [ ] Confirm operator need: lag, failure rate, poison messages
+- [x] Confirm product name: **Partner webhook relay for B2B integration events**
+- [x] Confirm upstream events: order / billing / shipment style notifications
+- [x] Confirm downstream: many partner HTTPS endpoints with per-partner secrets
+- [x] Confirm at-least-once delivery with idempotency keys for partners
+- [x] Confirm operator need: lag, failure rate, poison messages
 
 ## Checklist — actors
 
-- [ ] Upstream producer systems
-- [ ] Relay ingest API (Flask)
-- [ ] Delivery workers (same codebase, sync model)
-- [ ] Partner endpoints (slow, flaky, large)
-- [ ] Operator / support
+- [x] Upstream producer systems
+- [x] Relay ingest API (Flask)
+- [x] Delivery workers (same codebase, sync model)
+- [x] Partner endpoints (slow, flaky, large)
+- [x] Operator / support
 
 ## Checklist — load shape
 
-- [ ] Ingest burst size during merchant peak hours
-- [ ] Average fan-out factor (partners per event)
-- [ ] Partner p95 latency assumption
-- [ ] Max payload size
-- [ ] Max retry attempts and max age in queue
+- [x] Ingest burst size during merchant peak hours
+- [x] Average fan-out factor (partners per event)
+- [x] Partner p95 latency assumption
+- [x] Max payload size
+- [x] Max retry attempts and max age in queue
 
 ## Checklist — data concepts
 
-- [ ] `Partner`
-- [ ] `PartnerEndpoint`
-- [ ] `InboundEvent`
-- [ ] `DeliveryAttempt`
-- [ ] `DeliveryOutbox` / work claim record
+- [x] `Partner`
+- [x] `PartnerEndpoint`
+- [x] `InboundEvent`
+- [x] `DeliveryAttempt`
+- [x] `DeliveryOutbox` / work claim record
 
 ## Checklist — non-goals
 
-- [ ] Replacing Kafka/SQS as enterprise bus (DB-backed outbox is OK for v1 plan)
-- [ ] Async FastAPI rewrite (separate project)
-- [ ] Partner transformation DSL of arbitrary complexity
-- [ ] Code snippets in plans
+- [x] Replacing Kafka/SQS as enterprise bus (DB-backed outbox is OK for v1 plan)
+- [x] Async FastAPI rewrite (separate project)
+- [x] Partner transformation DSL of arbitrary complexity
+- [x] Code snippets in plans
 
 ## Exit criteria
 
-- [ ] Problem statement agreed
-- [ ] Load shape agreed
-- [ ] Ready for Phase 1
+- [x] Problem statement agreed
+- [x] Load shape agreed
+- [x] Ready for Phase 1
