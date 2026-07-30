@@ -4,6 +4,8 @@
 **Depends on:** Phases 1–4  
 **Goal:** Map flash-sale hot paths to future CodeHound Python / Django themes.
 
+> **Note:** Items below are CodeHound *detection rule* targets (what CodeHound should scan for), not Django app implementation tasks. The ✅ "Clean reservation service module" is the app-side deliverable; the remaining items define future CodeHound heuristics.
+
 ## Checklist — PERF / ORM themes
 
 - [ ] Query-in-loop / N+1 shaped ORM access

@@ -13,7 +13,7 @@
 - [x] Middleware cost locked
 - [x] Detector themes prioritized
 
-## Checklist — pilot scenarios (when app exists)
+## Checklist — pilot scenarios (need load-test infra — not code)
 
 - [ ] Sale-open thundering herd without oversell
 - [ ] Hot SKU contention remains correct with bounded p99

@@ -32,7 +32,7 @@
 ## Checklist — failure modes
 
 - [x] Sale not open / sale halted
-- [ ] Stock races between two shops
+- [x] Stock races between two shops (handled via select_for_update with ordered locks)
 - [x] Expired hold confirmed late
 - [x] Partial multi-line cart failure policy (all-or-nothing recommended for v1)
 
