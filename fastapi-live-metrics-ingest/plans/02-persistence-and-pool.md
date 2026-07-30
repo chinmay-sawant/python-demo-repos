@@ -1,59 +1,59 @@
 # Phase 2 — Persistence and connection pool (SQLAlchemy async + PostgreSQL)
 
-**Status:** planning  
+**Status:** implemented  
 **Depends on:** Phase 1  
 **Goal:** Integrate database requirements into the FastAPI service — no separate DB project.
 
 ## Checklist — storage responsibilities
 
-- [ ] Persist accepted samples (or short-window aggregates) for dashboard queries
-- [ ] Support tenant-scoped queries over a recent time window
-- [ ] Support idempotent ingest when an idempotency key is present
-- [ ] Support cleanup/TTL of expired samples (job or DB policy — decide one)
-- [ ] Store enough fields for p50/p95/p99 style reads without re-scanning forever
+- [x] Persist accepted samples (or short-window aggregates) for dashboard queries
+- [x] Support tenant-scoped queries over a recent time window
+- [x] Support idempotent ingest when an idempotency key is present
+- [x] Support cleanup/TTL of expired samples (job or DB policy — decide one)
+- [x] Store enough fields for p50/p95/p99 style reads without re-scanning forever
 
 ## Checklist — performance requirements (DB)
 
-- [ ] Prefer **batch insert** (or bulk copy strategy) over one insert per sample
-- [ ] Connection pool size and overflow must be explicit configuration, not defaults-by-accident
-- [ ] Pool acquisition must have a **timeout**; no infinite wait under herd
-- [ ] Transactions on the ingest path must be short; no long interactive transactions
-- [ ] Read queries for dashboards must not hold write locks needed by ingest
-- [ ] Avoid query-in-loop patterns when enriching samples with dimension tables
-- [ ] Index plan for `(tenant_id, ts)` and common filter columns must be specified before coding
+- [x] Prefer **batch insert** (or bulk copy strategy) over one insert per sample
+- [x] Connection pool size and overflow must be explicit configuration, not defaults-by-accident
+- [x] Pool acquisition must have a **timeout**; no infinite wait under herd
+- [x] Transactions on the ingest path must be short; no long interactive transactions
+- [x] Read queries for dashboards must not hold write locks needed by ingest
+- [x] Avoid query-in-loop patterns when enriching samples with dimension tables
+- [x] Index plan for `(tenant_id, ts)` and common filter columns must be specified before coding
 
 ## Checklist — SQLAlchemy async integration requirements
 
-- [ ] Engine/session lifecycle owned at app lifespan — not “new engine per request”
-- [ ] Sessions scoped correctly for async tasks; no cross-task session sharing
-- [ ] Explicit rule: no blocking DB drivers on the event loop
-- [ ] Explicit rule: expire/refresh behavior must not cause hidden lazy loads on hot paths
-- [ ] Migration strategy named (tooling only — no migration SQL in this plan tree)
+- [x] Engine/session lifecycle owned at app lifespan — not “new engine per request”
+- [x] Sessions scoped correctly for async tasks; no cross-task session sharing
+- [x] Explicit rule: no blocking DB drivers on the event loop
+- [x] Explicit rule: expire/refresh behavior must not cause hidden lazy loads on hot paths
+- [x] Migration strategy named (tooling only — no migration SQL in this plan tree)
 
 ## Checklist — data volume assumptions to document
 
-- [ ] Samples per second (steady / burst)
-- [ ] Average batch size
-- [ ] Retention window
-- [ ] Estimated row count at retention ceiling
-- [ ] Acceptable delete/compact cadence
+- [x] Samples per second (steady / burst)
+- [x] Average batch size
+- [x] Retention window
+- [x] Estimated row count at retention ceiling
+- [x] Acceptable delete/compact cadence
 
 ## Checklist — failure modes to design for
 
-- [ ] Pool timeout storms
-- [ ] Disk / DB slow queries feeding back into API latency
-- [ ] Partial batch failure policy (all-or-nothing vs partial accept)
-- [ ] Migration lock during deploys (operational note)
+- [x] Pool timeout storms
+- [x] Disk / DB slow queries feeding back into API latency
+- [x] Partial batch failure policy (all-or-nothing vs partial accept)
+- [x] Migration lock during deploys (operational note)
 
 ## Checklist — acceptance for Phase 2 design
 
-- [ ] Entity list + primary access patterns written
-- [ ] Batch write strategy chosen and justified
-- [ ] Pool settings required keys listed (size, overflow, timeout)
-- [ ] Index / access pattern list written
-- [ ] “Never do on hot path” ORM anti-list written
+- [x] Entity list + primary access patterns written
+- [x] Batch write strategy chosen and justified
+- [x] Pool settings required keys listed (size, overflow, timeout)
+- [x] Index / access pattern list written
+- [x] "Never do on hot path" ORM anti-list written
 
 ## Exit criteria
 
-- [ ] DB is fully specified as part of this FastAPI project
-- [ ] Ready for Phase 3 (async + outbound clients)
+- [x] DB is fully specified as part of this FastAPI project
+- [x] Ready for Phase 3 (async + outbound clients)
