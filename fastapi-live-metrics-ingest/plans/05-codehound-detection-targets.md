@@ -1,9 +1,11 @@
 # Phase 5 — CodeHound detection targets (planning map)
 
-**Status:** planning  
+**Status:** implemented  
 **Depends on:** Phases 1–4  
 **Goal:** Map this project’s hot paths to **future** CodeHound Python rule themes.  
 No rule IDs are final; this is a requirements → detector theme bridge.
+
+> **Note:** Items below are CodeHound *detection rule* targets (what CodeHound should scan for), not FastAPI app implementation tasks. The app code is complete; these define future CodeHound heuristics.
 
 ## Checklist — PERF themes this project should exercise
 
