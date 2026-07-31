@@ -3,7 +3,8 @@ import logging
 from datetime import UTC, datetime, timedelta
 
 import httpx
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import Settings
 from app.database import create_engine, create_session_factory
@@ -51,7 +52,7 @@ class BackgroundTaskManager:
                         if result.rowcount == 0:
                             break
                         logger.info("Deleted %d old metric samples", result.rowcount)
-            except Exception as e:
+            except SQLAlchemyError as e:
                 logger.error("TTL cleanup error: %s", e)
             await asyncio.sleep(300)
 
@@ -59,7 +60,7 @@ class BackgroundTaskManager:
         while not self._shutdown_event.is_set():
             try:
                 await self._run_vendor_export_tick(session_factory)
-            except Exception as e:
+            except (SQLAlchemyError, httpx.HTTPError) as e:
                 logger.error("Vendor export loop error: %s", e)
             await asyncio.sleep(60)
 
@@ -81,13 +82,20 @@ class BackgroundTaskManager:
             )
             result = await session.execute(stmt)
             for job in result.scalars().all():
+                job_id = job.id
                 exported = await service.export_aggregates(
                     tenant_id=job.tenant_id,
                     window_start=job.window_start,
                     window_end=job.window_end,
                 )
-                job.status = exported.status
-                job.completed_at = exported.completed_at
-                job.sample_count = exported.sample_count
-                job.error_message = exported.error_message
+                await session.execute(
+                    update(VendorExportJob)
+                    .where(VendorExportJob.id == job_id)
+                    .values(
+                        status=exported.status,
+                        completed_at=exported.completed_at,
+                        sample_count=exported.sample_count,
+                        error_message=exported.error_message,
+                    )
+                )
             await session.commit()

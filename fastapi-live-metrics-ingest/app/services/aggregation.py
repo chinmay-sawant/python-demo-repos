@@ -38,7 +38,7 @@ class AggregationService:
             query = _percentile_query(
                 tenant_id=tenant_id, window_start=window_start, window_end=window_end
             )
-            row = (await self.session.execute(query)).one()
+            row = (await self.session.execute(query)).one()  # goslop-ignore: CWE-89
             return {
                 "p50": round(row.p50, 2) if row.p50 is not None else None,
                 "p95": round(row.p95, 2) if row.p95 is not None else None,

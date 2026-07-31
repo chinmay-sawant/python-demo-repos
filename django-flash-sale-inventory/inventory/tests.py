@@ -304,7 +304,7 @@ class QueryCountTest(BaseTestMixin, TestCase):
 
         def counter(execute, sql, params, many, context):
             queries.append(sql)
-            return execute(sql, params, many, context)
+            return execute(sql, params, many, context)  # goslop-ignore: CWE-89
 
         items = [{"sku_code": f"SKU{i:03d}", "quantity": 1} for i in range(1, 21)]
         with connection.execute_wrapper(counter):

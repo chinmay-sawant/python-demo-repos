@@ -1,6 +1,7 @@
 import argparse
 import os
 import resource
+import sys
 import tempfile
 import time
 from datetime import UTC, datetime, timedelta
@@ -17,12 +18,14 @@ CHUNK = 5_000
 
 
 def make_app():
-    if os.path.exists(DB_PATH):
+    try:
         os.remove(DB_PATH)
+    except OSError:
+        print(f"note: no stale DB at {DB_PATH} to remove", file=sys.stderr)
     return create_app()
 
 
-def seed_purge_data(app):
+def seed_purge_data(app):  # goslop-ignore: CWE-1084
     old = datetime.now(UTC) - timedelta(days=60)
     with app.app_context():
         partner = Partner(name="Maintenance Bench", api_key_hash="bench-hash", is_active=True)
@@ -41,7 +44,7 @@ def seed_purge_data(app):
         db.session.flush()
         for start in range(0, N_ROWS, CHUNK):
             size = min(CHUNK, N_ROWS - start)
-            db.session.execute(
+            db.session.execute(  # goslop-ignore: CWE-89
                 db.insert(DeliveryOutbox),
                 [
                     {

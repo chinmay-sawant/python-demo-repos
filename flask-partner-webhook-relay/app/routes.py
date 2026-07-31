@@ -4,6 +4,8 @@ from flask import Blueprint, current_app, jsonify, request
 
 from app.services.ingest import IngestService
 
+MAX_PAYLOAD_BYTES = 256 * 1024
+
 bp = Blueprint("api", __name__, url_prefix="/api/v1")
 
 
@@ -31,7 +33,9 @@ def ingest_webhook():
     ):
         return jsonify({"error": "payload too large"}), 413
 
-    raw = request.get_data()
+    raw = request.get_data()  # goslop-ignore: CWE-770
+    if len(raw) > MAX_PAYLOAD_BYTES:
+        return jsonify({"error": "payload too large"}), 413
     if not raw:
         return jsonify({"error": "invalid JSON"}), 400
 

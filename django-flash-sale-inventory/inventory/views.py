@@ -6,6 +6,8 @@ from django.views.decorators.http import require_GET, require_POST
 
 from inventory.services.availability import AvailabilityService
 
+MAX_BODY_BYTES = 256 * 1024
+
 
 @require_GET
 @ensure_csrf_cookie
@@ -19,9 +21,10 @@ def sku_availability(request, sku_code):
 @csrf_protect
 @require_POST
 def batch_availability(request):
-    if len(request.body) > 256 * 1024:
+    body = request.body[: MAX_BODY_BYTES + 1]
+    if len(body) > MAX_BODY_BYTES:
         return JsonResponse({"error": "payload too large"}, status=413)
-    data = json.loads(request.body)
+    data = json.loads(body)
     sku_codes = data.get("sku_codes", [])
     region = data.get("region")
     svc = AvailabilityService()

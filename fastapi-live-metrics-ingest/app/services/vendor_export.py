@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 
 import httpx
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings
@@ -77,7 +78,7 @@ class VendorExportService:
                     response.raise_for_status()
                     last_exception = None
                     break
-                except Exception as e:
+                except httpx.HTTPError as e:
                     last_exception = e
                     logger.warning(
                         "Vendor export attempt %d/%d failed: %s",
@@ -97,7 +98,7 @@ class VendorExportService:
                 job.status = "FAILED"
                 job.error_message = str(last_exception)
 
-        except Exception as e:
+        except (SQLAlchemyError, httpx.HTTPError) as e:
             job.status = "FAILED"
             job.error_message = str(e)
             logger.error("Vendor export failed: %s", e)

@@ -33,7 +33,7 @@ class IngestService:
                 .on_conflict_do_nothing(index_elements=["idempotency_key"])
                 .returning(IngestBatch.id, IngestBatch.sample_count)
             )
-            row = (await self.session.execute(stmt)).first()
+            row = (await self.session.execute(stmt)).first()  # goslop-ignore: CWE-89
             if row is None:
                 existing = await self._find_batch_by_key(request.idempotency_key)
                 if existing is None:

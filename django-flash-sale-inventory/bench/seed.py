@@ -23,14 +23,18 @@ def seed():
         Warehouse.objects.create(code=f"WH{i:02d}", name=f"WH {i}", region=f"R{i % 3}")
         for i in range(1, 4)
     ]
-    for sku in skus:
-        for wh in warehouses:
-            WarehouseStock.objects.create(
+    WarehouseStock.objects.bulk_create(
+        [
+            WarehouseStock(
                 warehouse=wh,
                 sku=sku,
                 quantity=1000 + sku.id + wh.id,
                 reserved_quantity=sku.id % 50,
             )
+            for sku in skus
+            for wh in warehouses
+        ]
+    )
     return sale, skus, warehouses
 
 

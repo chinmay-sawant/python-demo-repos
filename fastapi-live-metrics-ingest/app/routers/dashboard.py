@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_session, verify_tenant
@@ -31,7 +32,7 @@ async def get_percentiles(
     svc = AggregationService(session)
     try:
         data = await svc.get_percentiles(tenant_id=tenant_id, window_start=ws, window_end=we)
-    except Exception:
+    except (SQLAlchemyError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Aggregation failed",
@@ -62,7 +63,7 @@ async def get_top_routes(
         rows = await svc.get_top_routes(
             tenant_id=tenant_id, window_start=ws, window_end=we, limit=limit
         )
-    except Exception:
+    except (SQLAlchemyError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Aggregation failed",
@@ -89,7 +90,7 @@ async def get_error_rates(
     svc = AggregationService(session)
     try:
         data = await svc.get_error_rates(tenant_id=tenant_id, window_start=ws, window_end=we)
-    except Exception:
+    except (SQLAlchemyError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Aggregation failed",

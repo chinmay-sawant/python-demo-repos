@@ -124,7 +124,7 @@ class DeliveryWorker:
                     "error": f"connection_error: {str(e)[:200]}",
                     "attempt_number": attempt_number,
                 }
-            except Exception as e:
+            except requests.RequestException as e:
                 return {
                     "status_code": None,
                     "response_body": None,

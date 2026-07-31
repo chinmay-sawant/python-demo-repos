@@ -10,6 +10,7 @@ class Config:
         "pool_pre_ping": True,
     }
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    MAX_CONTENT_LENGTH = 256 * 1024  # Flask enforces this before route code runs
     INGEST_API_KEY = os.getenv("INGEST_API_KEY", "dev-api-key")
     INGEST_MAX_PAYLOAD_SIZE = 256 * 1024  # 256KB
     INGEST_MAX_EVENT_BODY_BYTES = 262144

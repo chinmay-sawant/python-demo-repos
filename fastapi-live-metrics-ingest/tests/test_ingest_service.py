@@ -16,7 +16,8 @@ _old_numeric_segment_re = re.compile(r"/\d+(/|$)")
 
 def _old_normalize_route(label: str) -> str:
     label = _old_route_cleanup_re.sub("", label)
-    label = _old_numeric_segment_re.sub(r"/{id}\1", label)
+    # intentionally-old reference implementation; kept to prove single-regex equivalence
+    label = _old_numeric_segment_re.sub(r"/{id}\1", label)  # goslop-ignore: PERF-PY-18
     return label
 
 

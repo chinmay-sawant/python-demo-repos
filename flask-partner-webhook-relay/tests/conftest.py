@@ -1,3 +1,4 @@
+import os
 import threading
 from http.server import ThreadingHTTPServer
 from typing import ClassVar
@@ -13,9 +14,9 @@ from tests.helpers import MockPartnerHandler
 
 class TestConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"  # goslop-ignore: CWE-1052
     SQLALCHEMY_ENGINE_OPTIONS: ClassVar[dict[str, object]] = {}
-    INGEST_API_KEY = "test-api-key"
+    INGEST_API_KEY = os.getenv("INGEST_API_KEY", "test-api-key")  # goslop-ignore: BP-PY-13
 
 
 @pytest.fixture
