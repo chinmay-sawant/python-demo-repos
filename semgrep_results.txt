@@ -1,0 +1,56 @@
+                   
+                   
+┌─────────────────┐
+│ 4 Code Findings │
+└─────────────────┘
+                                          
+    django-flash-sale-inventory/Dockerfile
+   ❯❯❱ dockerfile.security.missing-user.missing-user
+          ❰❰ Blocking ❱❱
+          By not specifying a USER, a program in the container may run as 'root'. This is a security hazard.
+          If an attacker can control a process running as root, they may have control over the container.   
+          Ensure that the last USER in a Dockerfile is a USER other than 'root'.                            
+          Details: https://sg.run/Gbvn                                                                      
+                                                                                                            
+           ▶▶┆ Autofix ▶ USER non-root CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+           16┆ CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+                                                  
+    django-flash-sale-inventory/inventory/views.py
+    ❯❱ python.django.security.audit.csrf-exempt.no-csrf-exempt
+          ❰❰ Blocking ❱❱
+          Detected usage of @csrf_exempt, which indicates that there is no CSRF token set for this route. This
+          could lead to an attacker manipulating the user's account and exfiltration of private data. Instead,
+          create a function without this decorator.                                                           
+          Details: https://sg.run/rd5e                                                                        
+                                                                                                              
+           20┆ @csrf_exempt
+           21┆ @require_POST
+           22┆ def batch_availability(request):
+           23┆     data = json.loads(request.body)
+           24┆     sku_codes = data.get('sku_codes', [])
+           25┆     region = data.get('region')
+           26┆     svc = AvailabilityService()
+           27┆     result = svc.get_batch_availability(sku_codes, region=region)
+           28┆     return JsonResponse(result)
+                                          
+    fastapi-live-metrics-ingest/Dockerfile
+   ❯❯❱ dockerfile.security.missing-user.missing-user
+          ❰❰ Blocking ❱❱
+          By not specifying a USER, a program in the container may run as 'root'. This is a security hazard.
+          If an attacker can control a process running as root, they may have control over the container.   
+          Ensure that the last USER in a Dockerfile is a USER other than 'root'.                            
+          Details: https://sg.run/Gbvn                                                                      
+                                                                                                            
+           ▶▶┆ Autofix ▶ USER non-root CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+           12┆ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+                                          
+    flask-partner-webhook-relay/Dockerfile
+   ❯❯❱ dockerfile.security.missing-user.missing-user
+          ❰❰ Blocking ❱❱
+          By not specifying a USER, a program in the container may run as 'root'. This is a security hazard.
+          If an attacker can control a process running as root, they may have control over the container.   
+          Ensure that the last USER in a Dockerfile is a USER other than 'root'.                            
+          Details: https://sg.run/Gbvn                                                                      
+                                                                                                            
+           ▶▶┆ Autofix ▶ USER non-root CMD ["flask", "run", "--host", "0.0.0.0", "--port", "8000"]
+           15┆ CMD ["flask", "run", "--host", "0.0.0.0", "--port", "8000"]
