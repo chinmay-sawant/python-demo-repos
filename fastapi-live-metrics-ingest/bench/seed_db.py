@@ -1,11 +1,10 @@
 import asyncio
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
+from app.database import create_session_factory
+from app.models import Base, MetricSample, Tenant
 from sqlalchemy import insert
-
-from app.database import create_engine, create_session_factory
-from app.models import Base, Tenant, MetricSample
 
 DB_URL = "sqlite+aiosqlite:///bench_metrics.db"
 SAMPLE_ROWS = 200_000
@@ -17,7 +16,7 @@ async def main():
         await conn.run_sync(Base.metadata.create_all)
     factory = create_session_factory(engine)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     async with factory() as session:
         tenant = Tenant(name="bench-tenant")
         session.add(tenant)

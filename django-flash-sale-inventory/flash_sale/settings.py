@@ -3,9 +3,9 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-dev-only-key-flash-sale'
+SECRET_KEY = 'django-insecure-dev-only-key-flash-sale'  # noqa: S105
 
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', '0') == '1'
 
 ALLOWED_HOSTS = ['*']
 
@@ -51,24 +51,33 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'flash_sale.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# DJANGO_DB_ENGINE=sqlite selects sqlite (local dev/tests); default is PostgreSQL.
+# The inventory.sqlite3_immediate backend uses BEGIN IMMEDIATE so concurrent
+# writer threads serialize instead of deadlocking ("database table is locked").
+if os.getenv('DJANGO_DB_ENGINE', 'postgresql') == 'sqlite':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'inventory.sqlite3_immediate',
+            'NAME': BASE_DIR / 'db.sqlite3',
+            # File-backed test DB: the in-memory shared-cache DB has no busy
+            # handler, so concurrent writer threads fail instantly instead of
+            # waiting ("database table is locked").
+            'TEST': {'NAME': BASE_DIR / 'test_db.sqlite3'},
+        }
     }
-}
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.getenv('DB_NAME', 'flash_sale'),
-#         'USER': os.getenv('DB_USER', 'postgres'),
-#         'PASSWORD': os.getenv('DB_PASSWORD', ''),
-#         'HOST': os.getenv('DB_HOST', 'localhost'),
-#         'PORT': os.getenv('DB_PORT', '5432'),
-#         'CONN_MAX_AGE': 60,
-#     }
-# }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME', 'flash_sale'),
+            'USER': os.getenv('DB_USER', 'postgres'),
+            'PASSWORD': os.getenv('DB_PASSWORD', ''),
+            'HOST': os.getenv('DB_HOST', 'localhost'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+            'CONN_MAX_AGE': 60,
+            'CONN_HEALTH_CHECKS': True,
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

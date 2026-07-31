@@ -1,6 +1,6 @@
 import json
+
 import pytest
-from app.models import DeliveryOutbox
 
 
 class TestHealth:

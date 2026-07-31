@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.db import models, transaction
+from django.db import IntegrityError, models, transaction
 from django.utils import timezone
 
 from inventory.exceptions import (
@@ -33,14 +33,22 @@ class ReservationService:
             if existing:
                 return existing
 
+        skus = {
+            s.sku_code: s
+            for s in Sku.objects.filter(sku_code__in=[i['sku_code'] for i in items])
+        }
+        warehouse = Warehouse.objects.get(code=warehouse_code) if warehouse_code else None
+
         item_details = []
         for item in items:
-            sku = Sku.objects.get(sku_code=item['sku_code'])
-            if warehouse_code:
-                warehouse = Warehouse.objects.get(code=warehouse_code)
-                stock_qs = WarehouseStock.objects.filter(warehouse=warehouse, sku=sku)
-            else:
-                stock_qs = WarehouseStock.objects.filter(sku=sku).select_related('warehouse').order_by('-quantity')
+            sku = skus[item['sku_code']]
+            stock_qs = (
+                WarehouseStock.objects.filter(warehouse=warehouse, sku=sku)
+                if warehouse
+                else WarehouseStock.objects.filter(sku=sku)
+                .select_related('warehouse')
+                .order_by('-quantity')
+            )
 
             stock = stock_qs.select_for_update().first()
             if not stock or stock.available_quantity() < item['quantity']:
@@ -56,30 +64,49 @@ class ReservationService:
                 'quantity': item['quantity'],
             })
 
-        reservation = Reservation.objects.create(
-            user_id=user_id,
-            sale_event=sale_event,
-            status=Reservation.Status.PENDING,
-            idempotency_key=idempotency_key,
-            expires_at=timezone.now() + timedelta(minutes=30),
-        )
+        if idempotency_key:
+            try:
+                with transaction.atomic():
+                    reservation = Reservation.objects.create(
+                        user_id=user_id,
+                        sale_event=sale_event,
+                        status=Reservation.Status.PENDING,
+                        idempotency_key=idempotency_key,
+                        expires_at=timezone.now() + timedelta(minutes=30),
+                    )
+            except IntegrityError:
+                return Reservation.objects.get(idempotency_key=idempotency_key)
+        else:
+            reservation = Reservation.objects.create(
+                user_id=user_id,
+                sale_event=sale_event,
+                status=Reservation.Status.PENDING,
+                idempotency_key=idempotency_key,
+                expires_at=timezone.now() + timedelta(minutes=30),
+            )
 
-        for detail in item_details:
-            ReservationLine.objects.create(
+        ReservationLine.objects.bulk_create([
+            ReservationLine(
                 reservation=reservation,
-                sku=detail['sku'],
-                warehouse=detail['stock'].warehouse,
-                quantity=detail['quantity'],
+                sku=d['sku'],
+                warehouse=d['stock'].warehouse,
+                quantity=d['quantity'],
             )
-            WarehouseStock.objects.filter(pk=detail['stock'].pk).update(
-                reserved_quantity=models.F('reserved_quantity') + detail['quantity']
+            for d in item_details
+        ])
+        for d in item_details:
+            WarehouseStock.objects.filter(pk=d['stock'].pk).update(
+                reserved_quantity=models.F('reserved_quantity') + d['quantity']
             )
-            StockLedger.objects.create(
-                warehouse_stock=detail['stock'],
-                delta=-detail['quantity'],
+        StockLedger.objects.bulk_create([
+            StockLedger(
+                warehouse_stock=d['stock'],
+                delta=-d['quantity'],
                 reason=StockLedger.Reason.RESERVE,
                 reservation=reservation,
             )
+            for d in item_details
+        ])
 
         return reservation
 
@@ -95,13 +122,23 @@ class ReservationService:
         reservation.status = Reservation.Status.CONFIRMED
         reservation.save()
 
-        for line in reservation.lines.select_related('sku', 'warehouse').all():
-            stock = WarehouseStock.objects.get(warehouse=line.warehouse, sku=line.sku)
-            stock.reserved_quantity -= line.quantity
-            stock.quantity -= line.quantity
-            stock.save()
+        lines = list(reservation.lines.all())
+        lock_q = models.Q()
+        for line in lines:
+            lock_q |= models.Q(warehouse_id=line.warehouse_id, sku_id=line.sku_id)
+        stocks = {
+            (ws.warehouse_id, ws.sku_id): ws
+            for ws in WarehouseStock.objects.filter(lock_q).select_for_update()
+        }
+        for line in lines:
+            WarehouseStock.objects.filter(
+                warehouse_id=line.warehouse_id, sku_id=line.sku_id
+            ).update(
+                reserved_quantity=models.F('reserved_quantity') - line.quantity,
+                quantity=models.F('quantity') - line.quantity,
+            )
             StockLedger.objects.create(
-                warehouse_stock=stock,
+                warehouse_stock=stocks[(line.warehouse_id, line.sku_id)],
                 delta=-line.quantity,
                 reason=StockLedger.Reason.CONFIRM,
                 reservation=reservation,
@@ -116,12 +153,22 @@ class ReservationService:
         reservation.status = Reservation.Status.CANCELLED
         reservation.save()
 
-        for line in reservation.lines.select_related('sku', 'warehouse').all():
-            stock = WarehouseStock.objects.get(warehouse=line.warehouse, sku=line.sku)
-            stock.reserved_quantity -= line.quantity
-            stock.save()
+        lines = list(reservation.lines.all())
+        lock_q = models.Q()
+        for line in lines:
+            lock_q |= models.Q(warehouse_id=line.warehouse_id, sku_id=line.sku_id)
+        stocks = {
+            (ws.warehouse_id, ws.sku_id): ws
+            for ws in WarehouseStock.objects.filter(lock_q).select_for_update()
+        }
+        for line in lines:
+            WarehouseStock.objects.filter(
+                warehouse_id=line.warehouse_id, sku_id=line.sku_id
+            ).update(
+                reserved_quantity=models.F('reserved_quantity') - line.quantity,
+            )
             StockLedger.objects.create(
-                warehouse_stock=stock,
+                warehouse_stock=stocks[(line.warehouse_id, line.sku_id)],
                 delta=line.quantity,
                 reason=StockLedger.Reason.CANCEL,
                 reservation=reservation,
@@ -129,30 +176,44 @@ class ReservationService:
 
         return reservation
 
-    @transaction.atomic
-    def release_expired(self):
+    def release_expired(self, batch_size=500):
         cutoff = timezone.now()
-        expired_qs = Reservation.objects.filter(
-            status=Reservation.Status.PENDING,
-            expires_at__lt=cutoff,
-        ).select_for_update(skip_locked=True)
-
         count = 0
-        for reservation in expired_qs:
-            reservation.status = Reservation.Status.EXPIRED
-            reservation.save()
+        while True:
+            with transaction.atomic():
+                expired_qs = Reservation.objects.filter(
+                    status=Reservation.Status.PENDING,
+                    expires_at__lt=cutoff,
+                ).select_for_update(skip_locked=True)[:batch_size]
+                processed = 0
+                for reservation in expired_qs:
+                    reservation.status = Reservation.Status.EXPIRED
+                    reservation.save()
 
-            for line in reservation.lines.select_related('sku', 'warehouse').all():
-                stock = WarehouseStock.objects.get(warehouse=line.warehouse, sku=line.sku)
-                stock.reserved_quantity -= line.quantity
-                stock.save()
-                StockLedger.objects.create(
-                    warehouse_stock=stock,
-                    delta=line.quantity,
-                    reason=StockLedger.Reason.EXPIRE,
-                    reservation=reservation,
-                )
+                    lines = list(reservation.lines.all())
+                    lock_q = models.Q()
+                    for line in lines:
+                        lock_q |= models.Q(warehouse_id=line.warehouse_id, sku_id=line.sku_id)
+                    stocks = {
+                        (ws.warehouse_id, ws.sku_id): ws
+                        for ws in WarehouseStock.objects.filter(lock_q).select_for_update()
+                    }
+                    for line in lines:
+                        WarehouseStock.objects.filter(
+                            warehouse_id=line.warehouse_id, sku_id=line.sku_id
+                        ).update(
+                            reserved_quantity=models.F('reserved_quantity') - line.quantity,
+                        )
+                        StockLedger.objects.create(
+                            warehouse_stock=stocks[(line.warehouse_id, line.sku_id)],
+                            delta=line.quantity,
+                            reason=StockLedger.Reason.EXPIRE,
+                            reservation=reservation,
+                        )
 
-            count += 1
+                    processed += 1
+                count += processed
+            if processed < batch_size:
+                break
 
         return count

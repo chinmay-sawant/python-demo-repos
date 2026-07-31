@@ -8,7 +8,7 @@ os.environ.setdefault("DATABASE_URL", "sqlite:///bench_relay.db")
 
 from app import create_app
 from app.database import db
-from app.models import InboundEvent, DeliveryOutbox, PartnerEndpoint
+from app.models import DeliveryOutbox, InboundEvent, PartnerEndpoint
 from app.services.delivery import DeliveryWorker
 
 MOCK_PARTNER_LATENCY_S = 0.2
@@ -65,8 +65,8 @@ def main():
         delivered = run_once()
         times.append(time.perf_counter() - t0)
 
-    print("== Flask delivery worker benchmark (2026-07-31, mock partner 200ms) ==")
-    print(f"run_once({N_ITEMS} items, sequential) : {statistics.median(times):.2f}s median  "
+    print("== Flask delivery worker benchmark (mock partner 200ms) ==")
+    print(f"run_once({N_ITEMS} items, concurrent) : {statistics.median(times):.2f}s median  "
           f"(per-item ≈ {statistics.median(times) / N_ITEMS * 1000:.0f} ms; partner latency 200ms)")
 
     with app.app_context():

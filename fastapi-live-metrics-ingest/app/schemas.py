@@ -1,17 +1,18 @@
-from pydantic import BaseModel, Field, field_validator
-from typing import List, Optional
 from datetime import datetime
+
+from pydantic import BaseModel, Field, field_validator
+
 
 class MetricSampleIn(BaseModel):
     route_label: str = Field(..., max_length=512)
     latency_ms: float = Field(..., ge=0)
     status_code: int = Field(..., ge=100, lt=600)
-    ua_class: Optional[str] = None
+    ua_class: str | None = None
     timestamp: datetime
 
 class IngestRequest(BaseModel):
-    samples: List[MetricSampleIn] = Field(..., max_length=1000)
-    idempotency_key: Optional[str] = None
+    samples: list[MetricSampleIn] = Field(..., max_length=1000)
+    idempotency_key: str | None = None
 
     @field_validator("samples")
     @classmethod
@@ -29,9 +30,9 @@ class PercentileResponse(BaseModel):
     tenant_id: int
     window_start: datetime
     window_end: datetime
-    p50: Optional[float] = None
-    p95: Optional[float] = None
-    p99: Optional[float] = None
+    p50: float | None = None
+    p95: float | None = None
+    p99: float | None = None
     total_samples: int = 0
 
 class TopRouteItem(BaseModel):
@@ -43,7 +44,7 @@ class TopRoutesResponse(BaseModel):
     tenant_id: int
     window_start: datetime
     window_end: datetime
-    routes: List[TopRouteItem]
+    routes: list[TopRouteItem]
     total_samples: int = 0
 
 class ErrorRateResponse(BaseModel):

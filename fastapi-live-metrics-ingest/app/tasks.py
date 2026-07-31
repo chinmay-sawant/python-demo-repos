@@ -1,11 +1,14 @@
 import asyncio
 import logging
-from datetime import datetime, timedelta, timezone
-from sqlalchemy import delete, select, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import UTC, datetime, timedelta
+
+import httpx
+from sqlalchemy import delete, select
+
 from app.config import Settings
 from app.database import create_engine, create_session_factory
-from app.models import MetricSample
+from app.models import MetricSample, VendorExportJob
+from app.services.vendor_export import VendorExportService
 
 logger = logging.getLogger(__name__)
 
@@ -32,12 +35,14 @@ class BackgroundTaskManager:
     async def _ttl_cleanup_loop(self, session_factory):
         while not self._shutdown_event.is_set():
             try:
-                cutoff = datetime.now(timezone.utc) - timedelta(hours=self.settings.retention_hours)
+                cutoff = datetime.now(UTC) - timedelta(hours=self.settings.retention_hours)
                 async with session_factory() as session:
                     while True:
-                        stmt = delete(MetricSample).where(
-                            MetricSample.created_at < cutoff
-                        ).limit(500)
+                        stmt = delete(MetricSample).where(MetricSample.id.in_(
+                            select(MetricSample.id)
+                            .where(MetricSample.created_at < cutoff)
+                            .limit(500)
+                        ))
                         result = await session.execute(stmt)
                         await session.commit()
                         if result.rowcount == 0:
@@ -50,7 +55,36 @@ class BackgroundTaskManager:
     async def _vendor_export_loop(self, session_factory):
         while not self._shutdown_event.is_set():
             try:
-                logger.debug("Vendor export loop tick")
+                await self._run_vendor_export_tick(session_factory)
             except Exception as e:
                 logger.error("Vendor export loop error: %s", e)
             await asyncio.sleep(60)
+
+    async def _run_vendor_export_tick(self, session_factory):
+        async with (
+            session_factory() as session,
+            httpx.AsyncClient(timeout=self.settings.vendor_timeout_seconds) as client,
+        ):
+            service = VendorExportService(session, self.settings, client)
+            now = datetime.now(UTC)
+            stmt = (
+                select(VendorExportJob)
+                .where(
+                    VendorExportJob.status == "PENDING",
+                    VendorExportJob.window_end <= now,
+                )
+                .order_by(VendorExportJob.created_at.asc())
+                .limit(self.settings.vendor_max_concurrency)
+            )
+            result = await session.execute(stmt)
+            for job in result.scalars().all():
+                exported = await service.export_aggregates(
+                    tenant_id=job.tenant_id,
+                    window_start=job.window_start,
+                    window_end=job.window_end,
+                )
+                job.status = exported.status
+                job.completed_at = exported.completed_at
+                job.sample_count = exported.sample_count
+                job.error_message = exported.error_message
+            await session.commit()

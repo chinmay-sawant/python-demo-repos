@@ -3,7 +3,7 @@ import threading
 from datetime import timedelta
 
 from django.core.management import call_command
-from django.test import TestCase, TransactionTestCase, override_settings
+from django.test import TestCase, TransactionTestCase
 from django.urls import reverse
 from django.utils import timezone
 
@@ -238,6 +238,62 @@ class ReservationServiceTest(BaseTestMixin, TestCase):
         ws = WarehouseStock.objects.get(sku__sku_code='SKU001', warehouse__code='WH01')
         self.assertEqual(ws.reserved_quantity, 10)
 
+    def test_release_expired_chunked_batches(self):
+        for i in range(3):
+            reservation = self.svc.reserve(
+                self.sale, f'user{i}', [{'sku_code': 'SKU001', 'quantity': 1}],
+            )
+            Reservation.objects.filter(pk=reservation.pk).update(
+                expires_at=timezone.now() - timedelta(hours=1),
+            )
+
+        count = self.svc.release_expired(batch_size=2)
+        self.assertEqual(count, 3)
+        self.assertEqual(
+            Reservation.objects.filter(status=Reservation.Status.EXPIRED).count(), 3,
+        )
+        ws = WarehouseStock.objects.get(sku__sku_code='SKU001', warehouse__code='WH01')
+        self.assertEqual(ws.reserved_quantity, 0)
+
+
+class QueryCountTest(BaseTestMixin, TestCase):
+
+    def setUp(self):
+        self.svc = ReservationService()
+        self.sale = self._create_sale()
+        wh1 = Warehouse.objects.get(code='WH01')
+        wh2 = Warehouse.objects.get(code='WH02')
+        for i in range(3, 21):
+            sku = Sku.objects.create(sku_code=f'SKU{i:03d}', name=f'Product {i}')
+            WarehouseStock.objects.create(warehouse=wh1, sku=sku, quantity=100)
+            WarehouseStock.objects.create(warehouse=wh2, sku=sku, quantity=100)
+
+    def test_reserve_20_lines_query_count(self):
+        from django.db import connection
+
+        queries = []
+
+        def counter(execute, sql, params, many, context):
+            queries.append(sql)
+            return execute(sql, params, many, context)
+
+        items = [{'sku_code': f'SKU{i:03d}', 'quantity': 1} for i in range(1, 21)]
+        with connection.execute_wrapper(counter):
+            self.svc.reserve(self.sale, 'quser', items)
+
+        data_queries = [sql for sql in queries if 'inventory_' in sql]
+        self.assertEqual(
+            sum(1 for sql in data_queries if sql.strip().startswith('SELECT')
+                and 'inventory_sku' in sql),
+            1,
+            'SKU lookup must be hoisted out of the loop (DJ-1)',
+        )
+        self.assertLessEqual(
+            len(data_queries), 2 * 20 + 6,
+            f'reserve(20) issued {len(data_queries)} data queries, '
+            f'expected <= 46 (was 102, DJ-1/DJ-2)',
+        )
+
 
 class AvailabilityServiceTest(BaseTestMixin, TestCase):
 
@@ -276,6 +332,21 @@ class AvailabilityServiceTest(BaseTestMixin, TestCase):
         self.assertEqual(stock_map['SKU002']['quantity'], 200)
         self.assertEqual(stock_map['SKU002']['available'], 200)
 
+    def test_get_warehouse_rollup_single_query_values_projection(self):
+        from django.db import connection
+
+        queries = []
+
+        def counter(execute, sql, params, many, context):
+            queries.append(sql)
+            return execute(sql, params, many, context)
+
+        with connection.execute_wrapper(counter):
+            stocks = self.svc.get_warehouse_rollup('WH01')
+
+        self.assertEqual(len(queries), 1, 'rollup must be a single projected query (DJ-6)')
+        self.assertTrue(all(isinstance(s, dict) for s in stocks), 'no ORM hydration (DJ-6)')
+
 
 class ViewTest(BaseTestMixin, TestCase):
 
@@ -308,6 +379,18 @@ class ViewTest(BaseTestMixin, TestCase):
         data = json.loads(response.content)
         self.assertEqual(data['SKU001'], 150)
         self.assertEqual(data['SKU002'], 200)
+
+    def test_batch_availability_payload_too_large(self):
+        self._create_sale()
+        url = reverse('batch-availability')
+        big_body = json.dumps({'sku_codes': ['SKU001'] * 100000})
+        self.assertGreater(len(big_body), 256 * 1024)
+        response = self.client.post(
+            url,
+            data=big_body,
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 413)
 
     def test_warehouse_rollup_endpoint(self):
         self._create_sale()
@@ -365,6 +448,9 @@ class ReservationConcurrencyTest(BaseTestMixin, TransactionTestCase):
         from django.db import close_old_connections
 
         sale = self._create_sale()
+        WarehouseStock.objects.filter(
+            sku__sku_code='SKU001', warehouse__code='WH02'
+        ).update(quantity=0)
         ws = WarehouseStock.objects.get(sku__sku_code='SKU001', warehouse__code='WH01')
         ws.quantity = 5
         ws.reserved_quantity = 0
@@ -379,7 +465,7 @@ class ReservationConcurrencyTest(BaseTestMixin, TransactionTestCase):
             try:
                 ready.wait(timeout=10)
                 svc = ReservationService()
-                res = svc.reserve(sale, user_id, [{'sku_code': 'SKU001', 'quantity': 5}])
+                svc.reserve(sale, user_id, [{'sku_code': 'SKU001', 'quantity': 5}])
                 results.append(user_id)
             except Exception as e:
                 errors.append((user_id, type(e).__name__, str(e)))
@@ -398,5 +484,96 @@ class ReservationConcurrencyTest(BaseTestMixin, TransactionTestCase):
 
         self.assertEqual(len(results), 1, f'Expected 1 success, got errors: {errors}')
         self.assertEqual(len(errors), 1, f'Expected 1 error, got results: {results}')
-        has_expected = ('InsufficientStock' in errors[0][2] or 'locked' in errors[0][2].lower())
+        has_expected = (
+            errors[0][1] == 'InsufficientStockError' or 'locked' in errors[0][2].lower()
+        )
         self.assertTrue(has_expected, f'Unexpected error: {errors[0]}')
+
+    def test_concurrent_confirm_no_lost_update(self):
+        from django.db import close_old_connections
+
+        sale = self._create_sale()
+        ws = WarehouseStock.objects.get(sku__sku_code='SKU001', warehouse__code='WH01')
+        ws.quantity = 100
+        ws.reserved_quantity = 20
+        ws.save()
+
+        svc = ReservationService()
+        r1 = svc.reserve(sale, 'u1', [{'sku_code': 'SKU001', 'quantity': 10}])
+        r2 = svc.reserve(sale, 'u2', [{'sku_code': 'SKU001', 'quantity': 10}])
+
+        errors = []
+        ready = threading.Event()
+
+        def _confirm(reservation_id):
+            close_old_connections()
+            try:
+                ready.wait(timeout=10)
+                svc.confirm(reservation_id)
+            except Exception as e:
+                errors.append((reservation_id, type(e).__name__, str(e)))
+            finally:
+                close_old_connections()
+
+        threads = [
+            threading.Thread(target=_confirm, args=(r1.id,)),
+            threading.Thread(target=_confirm, args=(r2.id,)),
+        ]
+        for t in threads:
+            t.start()
+        ready.set()
+        for t in threads:
+            t.join(timeout=20)
+
+        self.assertEqual(errors, [], f'Confirms failed: {errors}')
+        ws.refresh_from_db()
+        self.assertEqual(ws.quantity, 80, 'F() updates must both apply (DJ-3)')
+        self.assertEqual(
+            ws.reserved_quantity, 20, 'reserved must drop by both line quantities (DJ-3)'
+        )
+
+    def test_concurrent_same_idempotency_key(self):
+        from django.db import close_old_connections
+
+        sale = self._create_sale()
+        key = 'idem-race'
+
+        results = []
+        errors = []
+        ready = threading.Event()
+
+        def _reserve(user_id):
+            close_old_connections()
+            try:
+                ready.wait(timeout=10)
+                svc = ReservationService()
+                res = svc.reserve(
+                    sale, user_id, [{'sku_code': 'SKU001', 'quantity': 10}],
+                    idempotency_key=key,
+                )
+                results.append(res.id)
+            except Exception as e:
+                errors.append((user_id, type(e).__name__, str(e)))
+            finally:
+                close_old_connections()
+
+        threads = [
+            threading.Thread(target=_reserve, args=('u1',)),
+            threading.Thread(target=_reserve, args=('u2',)),
+        ]
+        for t in threads:
+            t.start()
+        ready.set()
+        for t in threads:
+            t.join(timeout=20)
+
+        self.assertEqual(errors, [], f'No request may 500 on the duplicate key (DJ-5): {errors}')
+        self.assertEqual(len(results), 2, f'Both threads must return a reservation: {results}')
+        self.assertEqual(
+            results[0], results[1], 'Both threads must return the same reservation (DJ-5)'
+        )
+        self.assertEqual(
+            Reservation.objects.filter(idempotency_key=key).count(), 1,
+        )
+        ws = WarehouseStock.objects.get(sku__sku_code='SKU001', warehouse__code='WH01')
+        self.assertEqual(ws.reserved_quantity, 10, 'stock must be reserved exactly once (DJ-5)')

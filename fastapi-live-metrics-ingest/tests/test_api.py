@@ -1,8 +1,11 @@
-import pytest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, patch
 
-from app.schemas import IngestResponse, PercentileResponse, TopRoutesResponse, TopRouteItem, ErrorRateResponse
+import pytest
+from app.schemas import (
+    IngestResponse,
+    PercentileResponse,
+)
 
 
 @pytest.mark.asyncio
@@ -82,8 +85,8 @@ async def test_ingest_requires_tenant_header(client):
 async def test_percentiles_endpoint(client, mock_session):
     mock_response = PercentileResponse(
         tenant_id=1,
-        window_start=datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
-        window_end=datetime(2024, 1, 1, 0, 5, 0, tzinfo=timezone.utc),
+        window_start=datetime(2024, 1, 1, 0, 0, 0, tzinfo=UTC),
+        window_end=datetime(2024, 1, 1, 0, 5, 0, tzinfo=UTC),
         p50=120.5,
         p95=450.0,
         p99=950.0,

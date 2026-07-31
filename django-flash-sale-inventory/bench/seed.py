@@ -8,7 +8,6 @@ django.setup()
 from datetime import timedelta
 
 from django.utils import timezone
-
 from inventory.models import SaleEvent, Sku, Warehouse, WarehouseStock
 
 
@@ -20,7 +19,10 @@ def seed():
         end_at=timezone.now() + timedelta(hours=1),
     )
     skus = [Sku.objects.create(sku_code=f"SKU{i:03d}", name=f"Sku {i}") for i in range(1, 21)]
-    warehouses = [Warehouse.objects.create(code=f"WH{i:02d}", name=f"WH {i}", region=f"R{i % 3}") for i in range(1, 4)]
+    warehouses = [
+        Warehouse.objects.create(code=f"WH{i:02d}", name=f"WH {i}", region=f"R{i % 3}")
+        for i in range(1, 4)
+    ]
     for sku in skus:
         for wh in warehouses:
             WarehouseStock.objects.create(

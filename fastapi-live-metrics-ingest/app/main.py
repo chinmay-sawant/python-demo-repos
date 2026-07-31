@@ -1,8 +1,11 @@
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
+
 from app.config import Settings
 from app.database import create_engine, create_session_factory
 from app.middleware import RequestTimingMiddleware, TenantHeaderMiddleware
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,8 +23,9 @@ app = FastAPI(lifespan=lifespan)
 app.add_middleware(RequestTimingMiddleware)
 app.add_middleware(TenantHeaderMiddleware)
 
-from app.routers import ingest as ingest_router
 from app.routers import dashboard as dashboard_router
+from app.routers import ingest as ingest_router
+
 app.include_router(ingest_router.router)
 app.include_router(dashboard_router.router)
 

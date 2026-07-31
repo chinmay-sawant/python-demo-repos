@@ -1,10 +1,12 @@
 import asyncio
 import logging
 import random
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
+import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-import httpx
+
 from app.config import Settings
 from app.models import VendorExportJob, WindowAggregate
 
@@ -16,11 +18,15 @@ class VendorExportService:
         self.settings = settings
         self.client = client
 
-    async def export_aggregates(self, *, tenant_id: int, window_start: datetime, window_end: datetime) -> VendorExportJob:
+    async def export_aggregates(
+        self, *, tenant_id: int, window_start: datetime, window_end: datetime
+    ) -> VendorExportJob:
         job = VendorExportJob(
             tenant_id=tenant_id,
             status="PENDING",
-            created_at=datetime.now(timezone.utc),
+            window_start=window_start,
+            window_end=window_end,
+            created_at=datetime.now(UTC),
         )
         self.session.add(job)
         await self.session.commit()
@@ -70,14 +76,19 @@ class VendorExportService:
                     break
                 except Exception as e:
                     last_exception = e
-                    logger.warning("Vendor export attempt %d/%d failed: %s", attempt + 1, max_attempts, e)
+                    logger.warning(
+                        "Vendor export attempt %d/%d failed: %s",
+                        attempt + 1,
+                        max_attempts,
+                        e,
+                    )
                     if attempt < max_attempts - 1:
-                        delay = (2 ** attempt) + random.uniform(0, 1)
+                        delay = (2 ** attempt) + random.uniform(0, 1)  # noqa: S311
                         await asyncio.sleep(delay)
 
             if last_exception is None:
                 job.status = "DONE"
-                job.completed_at = datetime.now(timezone.utc)
+                job.completed_at = datetime.now(UTC)
                 job.sample_count = len(routes)
             else:
                 job.status = "FAILED"

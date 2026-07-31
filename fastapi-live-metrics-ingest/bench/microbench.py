@@ -1,8 +1,7 @@
-import json
 import random
 import statistics
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.schemas import IngestRequest
 from app.services.ingest import normalize_route
@@ -17,13 +16,20 @@ def bench(label, fn, n):
         fn()
         dt = (time.perf_counter() - t0) / n
         samples.append(dt)
-    return f"{statistics.median(samples) * 1e6:10.1f} us/op  (median of {N_REPEATS}, p95={statistics.quantiles(samples, n=20)[18] * 1e6:.1f} us)"
+    return (
+        f"{statistics.median(samples) * 1e6:10.1f} us/op  "
+        f"(median of {N_REPEATS}, "
+        f"p95={statistics.quantiles(samples, n=20)[18] * 1e6:.1f} us)"
+    )
 
 
 LABELS = [f"/api/orders/{i % 500}/items/{i % 20}?trace={i}" for i in range(100_000)]
 
 print("== FastAPI CPU hot-path microbenchmarks (2026-07-31) ==")
-print(f"normalize_route 100k labels : {bench('route', lambda: [normalize_route(l) for l in LABELS], 100_000)}")
+print(
+    "normalize_route 100k labels : "
+    f"{bench('route', lambda: [normalize_route(label) for label in LABELS], 100_000)}"
+)
 
 payload = {
     "idempotency_key": "bench",
@@ -33,7 +39,7 @@ payload = {
             "latency_ms": random.random() * 500,
             "status_code": 200,
             "ua_class": "bench",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         for i in range(100)
     ],

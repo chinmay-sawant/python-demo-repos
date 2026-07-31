@@ -17,6 +17,7 @@ with app.app_context():
         url="http://127.0.0.1:8200/webhook",
         secret="bench-secret",
         is_active=True,
+        concurrency_cap=10,
     )
     db.session.add(endpoint)
     db.session.commit()

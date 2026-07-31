@@ -17,9 +17,9 @@ class SaleEvent(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        indexes = [
+        indexes = (
             models.Index(fields=['status', 'start_at']),
-        ]
+        )
 
     def __str__(self):
         return self.name
@@ -55,7 +55,10 @@ class WarehouseStock(models.Model):
     version = models.IntegerField(default=0)
 
     class Meta:
-        unique_together = [('warehouse', 'sku')]
+        unique_together = (('warehouse', 'sku'),)
+        indexes = (
+            models.Index(fields=['sku', '-quantity']),
+        )
         verbose_name_plural = 'warehouse stocks'
 
     def available_quantity(self):
@@ -82,10 +85,10 @@ class Reservation(models.Model):
     expires_at = models.DateTimeField()
 
     class Meta:
-        indexes = [
+        indexes = (
             models.Index(fields=['user_id', 'sale_event']),
             models.Index(fields=['status', 'expires_at']),
-        ]
+        )
 
     def __str__(self):
         return f'Reservation {self.id} [{self.status}]'
@@ -112,7 +115,9 @@ class StockLedger(models.Model):
         EXPIRE = 'EXPIRE', 'Expire'
         ADJUST = 'ADJUST', 'Adjust'
 
-    warehouse_stock = models.ForeignKey(WarehouseStock, on_delete=models.CASCADE, related_name='ledger_entries')
+    warehouse_stock = models.ForeignKey(
+        WarehouseStock, on_delete=models.CASCADE, related_name='ledger_entries'
+    )
     delta = models.IntegerField()
     reason = models.CharField(max_length=20, choices=Reason.choices)
     reservation = models.ForeignKey(Reservation, on_delete=models.SET_NULL, null=True, blank=True)

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
-from app.dependencies import get_settings, get_session, verify_tenant
+
+from app.dependencies import get_session, get_settings, verify_tenant
 from app.schemas import IngestRequest, IngestResponse
 from app.services.ingest import IngestService
 

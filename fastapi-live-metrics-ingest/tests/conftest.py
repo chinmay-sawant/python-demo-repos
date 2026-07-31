@@ -1,8 +1,10 @@
-import pytest
-from httpx import AsyncClient, ASGITransport
 from unittest.mock import AsyncMock, MagicMock
-from app.main import app
+
+import pytest
 from app.dependencies import get_session
+from app.main import app
+from httpx import ASGITransport, AsyncClient
+
 
 @pytest.fixture(autouse=True)
 def _setup_app_state():

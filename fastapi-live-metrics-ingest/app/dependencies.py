@@ -1,7 +1,9 @@
-from typing import Optional
-from fastapi import Request, Depends, HTTPException, Header
+
+from fastapi import Depends, Header, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.config import Settings
+
 
 async def get_settings(request: Request) -> Settings:
     return request.app.state.settings
@@ -12,7 +14,7 @@ async def get_session(request: Request) -> AsyncSession:
         yield session
 
 async def verify_tenant(
-    x_tenant_id: Optional[int] = Header(None, alias="X-Tenant-Id"),
+    x_tenant_id: int | None = Header(None, alias="X-Tenant-Id"),
     settings: Settings = Depends(get_settings),
 ):
     if x_tenant_id is None:

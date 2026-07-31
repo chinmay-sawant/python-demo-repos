@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 
+
 class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/metrics"
     database_echo: bool = False
@@ -7,6 +8,8 @@ class Settings(BaseSettings):
     max_overflow: int = 5
     pool_timeout: int = 30
     pool_pre_ping: bool = True
+    pool_recycle: int = 1800
+    statement_timeout_ms: int = 30000
     ingest_max_batch_size: int = 1000
     ingest_max_label_length: int = 256
     ingest_max_body_size: int = 1_048_576

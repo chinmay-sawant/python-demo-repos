@@ -1,8 +1,10 @@
 from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.dependencies import get_session, verify_tenant
-from app.schemas import PercentileResponse, TopRouteItem, TopRoutesResponse, ErrorRateResponse
+from app.schemas import ErrorRateResponse, PercentileResponse, TopRouteItem, TopRoutesResponse
 from app.services.aggregation import AggregationService
 
 router = APIRouter(prefix="/api/v1/tenants/{tenant_id}", tags=["dashboard"])
@@ -12,7 +14,9 @@ def _parse_datetime(param: str) -> datetime:
     try:
         return datetime.fromisoformat(param)
     except (ValueError, TypeError):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid datetime: {param}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid datetime: {param}"
+        ) from None
 
 
 @router.get("/percentiles", response_model=PercentileResponse)
@@ -28,7 +32,10 @@ async def get_percentiles(
     try:
         data = await svc.get_percentiles(tenant_id=tenant_id, window_start=ws, window_end=we)
     except Exception:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Aggregation failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Aggregation failed",
+        ) from None
     return PercentileResponse(
         tenant_id=tenant_id,
         window_start=ws,
@@ -52,9 +59,14 @@ async def get_top_routes(
     we = _parse_datetime(window_end)
     svc = AggregationService(session)
     try:
-        rows = await svc.get_top_routes(tenant_id=tenant_id, window_start=ws, window_end=we, limit=limit)
+        rows = await svc.get_top_routes(
+            tenant_id=tenant_id, window_start=ws, window_end=we, limit=limit
+        )
     except Exception:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Aggregation failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Aggregation failed",
+        ) from None
     total_samples = sum(r["count"] for r in rows)
     return TopRoutesResponse(
         tenant_id=tenant_id,
@@ -78,7 +90,10 @@ async def get_error_rates(
     try:
         data = await svc.get_error_rates(tenant_id=tenant_id, window_start=ws, window_end=we)
     except Exception:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Aggregation failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Aggregation failed",
+        ) from None
     return ErrorRateResponse(
         tenant_id=tenant_id,
         window_start=ws,

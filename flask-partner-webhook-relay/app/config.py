@@ -1,7 +1,13 @@
 import os
 
+
 class Config:
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///relay.db")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "postgresql://postgres@localhost/relay")
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_size": 10,
+        "max_overflow": 5,
+        "pool_pre_ping": True,
+    }
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     INGEST_API_KEY = os.getenv("INGEST_API_KEY", "dev-api-key")
     INGEST_MAX_PAYLOAD_SIZE = 256 * 1024  # 256KB

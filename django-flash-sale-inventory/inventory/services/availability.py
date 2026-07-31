@@ -1,6 +1,6 @@
-from django.db.models import Sum
+from django.db.models import F, Sum
 
-from inventory.models import Sku, Warehouse, WarehouseStock
+from inventory.models import WarehouseStock
 
 
 class AvailabilityService:
@@ -33,15 +33,12 @@ class AvailabilityService:
         return result
 
     def get_warehouse_rollup(self, warehouse_code):
-        qs = WarehouseStock.objects.filter(
-            warehouse__code=warehouse_code,
-        ).select_related('sku', 'warehouse')
-        result = []
-        for ws in qs:
-            result.append({
-                'sku_code': ws.sku.sku_code,
-                'quantity': ws.quantity,
-                'reserved_quantity': ws.reserved_quantity,
-                'available': ws.available_quantity(),
-            })
-        return result
+        return list(
+            WarehouseStock.objects.filter(warehouse__code=warehouse_code)
+            .values('quantity', 'reserved_quantity')
+            .annotate(
+                sku_code=F('sku__sku_code'),
+                available=F('quantity') - F('reserved_quantity'),
+            )
+            .order_by('sku_code')
+        )

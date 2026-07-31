@@ -1,5 +1,7 @@
 import json
-from flask import Blueprint, request, jsonify, current_app
+
+from flask import Blueprint, current_app, jsonify, request
+
 from app.services.ingest import IngestService
 
 bp = Blueprint("api", __name__, url_prefix="/api/v1")
@@ -23,8 +25,16 @@ def ingest_webhook():
     if request.content_length and request.content_length > current_app.config["INGEST_MAX_PAYLOAD_SIZE"]:
         return jsonify({"error": "payload too large"}), 413
 
-    data = request.get_json(silent=True)
-    if not data:
+    raw = request.get_data()
+    if not raw:
+        return jsonify({"error": "invalid JSON"}), 400
+
+    try:
+        data = json.loads(raw)
+    except (ValueError, UnicodeDecodeError):
+        return jsonify({"error": "invalid JSON"}), 400
+
+    if not isinstance(data, dict):
         return jsonify({"error": "invalid JSON"}), 400
 
     event_type = data.get("event_type")
@@ -35,10 +45,7 @@ def ingest_webhook():
     if not payload:
         return jsonify({"error": "payload is required"}), 400
 
-    if isinstance(payload, dict):
-        payload_str = json.dumps(payload)
-    else:
-        payload_str = str(payload)
+    payload_str = raw.decode()
 
     idempotency_key = data.get("idempotency_key")
 

@@ -1,6 +1,17 @@
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import String, Integer, Float, DateTime, BigInteger, Boolean, ForeignKey, Text, func
 from datetime import datetime
+
+from sqlalchemy import (
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    func,
+)
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
 
 class Base(DeclarativeBase):
     pass
@@ -19,7 +30,9 @@ class IngestBatch(Base):
     tenant_id: Mapped[int] = mapped_column(ForeignKey("tenants.id"))
     idempotency_key: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     sample_count: Mapped[int] = mapped_column(Integer)
-    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    received_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
 class MetricSample(Base):
     __tablename__ = "metric_samples"
@@ -33,6 +46,11 @@ class MetricSample(Base):
     ua_class: Mapped[str] = mapped_column(String(64))
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        Index("ix_metric_samples_tenant_ts", "tenant_id", "timestamp"),
+        Index("ix_metric_samples_created_at", "created_at"),
+    )
 
 class WindowAggregate(Base):
     __tablename__ = "window_aggregates"
@@ -58,3 +76,6 @@ class VendorExportJob(Base):
     status: Mapped[str] = mapped_column(String(32))
     retry_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    sample_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)

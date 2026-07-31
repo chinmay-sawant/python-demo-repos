@@ -8,7 +8,6 @@ import django
 django.setup()
 
 from django.db import connection
-
 from inventory.models import SaleEvent
 from inventory.services.reservation import ReservationService
 
@@ -34,7 +33,10 @@ def bench(fn, label):
             result = fn()
         times.append(time.perf_counter() - t0)
         last_queries = qc.count
-    print(f"{label:<24}: {statistics.median(times) * 1000:9.1f} ms/op  queries={last_queries}  (median of {N_REPEATS})")
+    print(
+        f"{label:<24}: {statistics.median(times) * 1000:9.1f} ms/op  "
+        f"queries={last_queries}  (median of {N_REPEATS})"
+    )
     return result
 
 
