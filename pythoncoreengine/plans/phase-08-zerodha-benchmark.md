@@ -102,17 +102,17 @@ See also: [Zerodha domain JSON section](../guides/TEMPLATE_REFERENCE.md#zerodha-
 
 ## Checklist — already landed
 
-- [x] TEMPLATE_REFERENCE moved to `guides/TEMPLATE_REFERENCE.md` (adapted for this repo)  
-- [x] Remove gopdfsuit require/replace and generate wrapper  
-- [x] JSON templates under `sampledata/zerodha/`  
-- [x] `engine/model` JSON → `ContractNote`  
-- [x] `engine/color` hex + theme palette (header/section/buy/sell/alt rows)  
-- [x] `engine/layout` table layout + `StyledCell` colors/borders  
-- [x] `engine/render` contract-note builder  
-- [x] `engine.GenerateDocument` multi-page assembly  
-- [x] Bench harness: compliant / nocomply, `BENCH_CACHE` on/off  
-- [x] Makefile: `bench-zerodha*`, `bench-zerodha-cached`, `bench-zerodha-uncached`  
-- [x] x5 / x10 run scripts  
+- [ ] TEMPLATE_REFERENCE moved to `guides/TEMPLATE_REFERENCE.md` (adapted for this repo)  
+- [ ] Remove gopdfsuit require/replace and generate wrapper  
+- [ ] JSON templates under `sampledata/zerodha/`  
+- [ ] `engine/model` JSON → `ContractNote`  
+- [ ] `engine/color` hex + theme palette (header/section/buy/sell/alt rows)  
+- [ ] `engine/layout` table layout + `StyledCell` colors/borders  
+- [ ] `engine/render` contract-note builder  
+- [ ] `engine.GenerateDocument` multi-page assembly  
+- [ ] Bench harness: compliant / nocomply, `BENCH_CACHE` on/off  
+- [ ] Makefile: `bench-zerodha*`, `bench-zerodha-cached`, `bench-zerodha-uncached`  
+- [ ] x5 / x10 run scripts  
 
 ---
 
@@ -120,16 +120,16 @@ See also: [Zerodha domain JSON section](../guides/TEMPLATE_REFERENCE.md#zerodha-
 
 All items in this section are done:
 
-- [x] Parse props string: `font:size:style:align:L:R:T:B` (`engine/layout/props.go`)  
-- [x] Text wrapping inside cells (`engine/layout/layout.go` `WrapText`)  
-- [x] Align left / center / right (`engine/layout/table.go` `LayOut`)  
-- [x] Per-side borders L:R:T:B (`engine/layout/table.go` `drawSide`)  
-- [x] `bgcolor` / `textcolor` from JSON (via `note.Footer` model + `UsedText` font coverage)  
-- [x] True diagonal watermark (`engine/layout/layout.go` `PlaceWatermark`)  
-- [x] Footer (`DocumentConfig.FooterText` read from JSON `footer.text`)  
-- [x] Page numbers ("Page X of Y") at bottom-right, right-aligned within page  
-- [x] CID hex encoding fix (`TjCID` instead of `Tj` for Identity-H fonts)  
-- [x] Full ASCII alphabet added to font subset for footer/page-number glyphs
+- [ ] Parse props string: `font:size:style:align:L:R:T:B` (`engine/layout/props.go`)  
+- [ ] Text wrapping inside cells (`engine/layout/layout.go` `WrapText`)  
+- [ ] Align left / center / right (`engine/layout/table.go` `LayOut`)  
+- [ ] Per-side borders L:R:T:B (`engine/layout/table.go` `drawSide`)  
+- [ ] `bgcolor` / `textcolor` from JSON (via `note.Footer` model + `UsedText` font coverage)  
+- [ ] True diagonal watermark (`engine/layout/layout.go` `PlaceWatermark`)  
+- [ ] Footer (`DocumentConfig.FooterText` read from JSON `footer.text`)  
+- [ ] Page numbers ("Page X of Y") at bottom-right, right-aligned within page  
+- [ ] CID hex encoding fix (`TjCID` instead of `Tj` for Identity-H fonts)  
+- [ ] Full ASCII alphabet added to font subset for footer/page-number glyphs
 
 ---
 
@@ -148,10 +148,10 @@ Items not yet started — deferred to later phases:
 
 ## Checklist — JSON → model (domain)
 
-- [x] Load retail / active / hft JSON  
-- [x] Expand active 40 / HFT 2000 with seed  
-- [x] Footer model (`Footer` struct with font/text/link) read from JSON  
-- [x] Cache modes: cached (`BENCH_CACHE=1`) and uncached (`BENCH_CACHE=0`)  
+- [ ] Load retail / active / hft JSON  
+- [ ] Expand active 40 / HFT 2000 with seed  
+- [ ] Footer model (`Footer` struct with font/text/link) read from JSON  
+- [ ] Cache modes: cached (`BENCH_CACHE=1`) and uncached (`BENCH_CACHE=0`)  
 
 ---
 
@@ -170,17 +170,17 @@ make bench-zerodha-nocomply-x10
 
 ## Acceptance — Phase 8 done
 
-- [x] `make bench-zerodha` succeeds (compliant, cache ON)  
-- [x] `make bench-zerodha-nocomply` succeeds  
-- [x] `make bench-zerodha-cached` / `bench-zerodha-uncached`  
-- [x] Warm-up PDFs written under `sampledata/zerodha/`  
-- [x] HFT multi-page (28 pages for 2000 trades)  
-- [x] Colored header/section/action cells visible  
-- [x] TEMPLATE_REFERENCE under `guides/`  
-- [x] Font renders correctly (TjCID hex strings)  
-- [x] Footer from JSON: `Zerodha Broking Ltd. | … | Confidential`  
-- [x] Page numbers bottom-right, right-aligned within page  
-- [x] Header titles fit without wrapping
+- [ ] `make bench-zerodha` succeeds (compliant, cache ON)  
+- [ ] `make bench-zerodha-nocomply` succeeds  
+- [ ] `make bench-zerodha-cached` / `bench-zerodha-uncached`  
+- [ ] Warm-up PDFs written under `sampledata/zerodha/`  
+- [ ] HFT multi-page (28 pages for 2000 trades)  
+- [ ] Colored header/section/action cells visible  
+- [ ] TEMPLATE_REFERENCE under `guides/`  
+- [ ] Font renders correctly (TjCID hex strings)  
+- [ ] Footer from JSON: `Zerodha Broking Ltd. | … | Confidential`  
+- [ ] Page numbers bottom-right, right-aligned within page  
+- [ ] Header titles fit without wrapping
 
 ### Compliance quality (ongoing)
 

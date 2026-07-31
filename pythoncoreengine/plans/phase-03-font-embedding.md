@@ -14,71 +14,71 @@ Embed TrueType fonts as PDF CID fonts with correct subsetting so phase 4 can cla
 
 ## Package layout
 
-- [x] `engine/font/` — TTF load, metrics, subset, registry, Liberation map
-- [x] Integration with `doc` emit order: assign font object IDs **before** content if content refs need stable names; subsets **after** content char collection
+- [ ] `engine/font/` — TTF load, metrics, subset, registry, Liberation map
+- [ ] Integration with `doc` emit order: assign font object IDs **before** content if content refs need stable names; subsets **after** content char collection
 
 ---
 
 ## Checklist — font registry
 
-- [x] Per-generation registry (usage tracking isolated per PDF)
-- [x] Register TTF from file path
-- [x] Register TTF from bytes / base64 (optional)
-- [x] Track used characters / glyphs during content generation
-- [x] `GenerateSubsets()` after all content is known
+- [ ] Per-generation registry (usage tracking isolated per PDF)
+- [ ] Register TTF from file path
+- [ ] Register TTF from bytes / base64 (optional)
+- [ ] Track used characters / glyphs during content generation
+- [ ] `GenerateSubsets()` after all content is known
 
 ## Checklist — Liberation manager (PDF/A prep)
 
-- [x] Map standard faces → Liberation:
-  - [x] Helvetica* → LiberationSans-*
-  - [x] Times-* → LiberationSerif-*
-  - [x] Courier* → LiberationMono-*
+- [ ] Map standard faces → Liberation:
+  - [ ] Helvetica* → LiberationSans-*
+  - [ ] Times-* → LiberationSerif-*
+  - [ ] Courier* → LiberationMono-*
 - [ ] Ensure fonts available (local path / download policy) — needs system fonts installed
-- [x] Register Liberation for all standard fonts used in a document
+- [ ] Register Liberation for all standard fonts used in a document
 
 ## Checklist — PDF object emit (CID chain)
 
 ### Type0 font
-- [x] `/Type /Font`
-- [x] `/Subtype /Type0`
-- [x] `/BaseFont`
-- [x] `/Encoding /Identity-H`
-- [x] `/DescendantFonts [ … ]`
-- [x] `/ToUnicode` stream ref
+- [ ] `/Type /Font`
+- [ ] `/Subtype /Type0`
+- [ ] `/BaseFont`
+- [ ] `/Encoding /Identity-H`
+- [ ] `/DescendantFonts [ … ]`
+- [ ] `/ToUnicode` stream ref
 
 ### CIDFont
-- [x] `/Subtype /CIDFontType2`
-- [x] `/CIDSystemInfo` with `/Registry`, `/Ordering`, `/Supplement`
-- [x] `/FontDescriptor`
-- [x] `/DW`
-- [x] `/W` (widths array object or inline)
-- [x] `/CIDToGIDMap`
+- [ ] `/Subtype /CIDFontType2`
+- [ ] `/CIDSystemInfo` with `/Registry`, `/Ordering`, `/Supplement`
+- [ ] `/FontDescriptor`
+- [ ] `/DW`
+- [ ] `/W` (widths array object or inline)
+- [ ] `/CIDToGIDMap`
 
 ### FontDescriptor
-- [x] `/FontName`, `/Flags`, `/FontBBox`
-- [x] `/ItalicAngle`, `/Ascent`, `/Descent`, `/CapHeight`, `/StemV`, `/XHeight`
-- [x] `/FontFile2` → subset TTF stream (prefer `/Filter /FlateDecode`)
+- [ ] `/FontName`, `/Flags`, `/FontBBox`
+- [ ] `/ItalicAngle`, `/Ascent`, `/Descent`, `/CapHeight`, `/StemV`, `/XHeight`
+- [ ] `/FontFile2` → subset TTF stream (prefer `/Filter /FlateDecode`)
 
 ## Checklist — correctness tests
 
-- [x] Used glyphs present in subset (no silent `.notdef` for used chars)
-- [x] Subset glyph widths match original scaled widths
-- [x] Hyphen width sanity (LiberationSans scaled hyphen often 333)
-- [x] ToUnicode maps used CIDs to Unicode
-- [x] Page resources reference embedded font names, not bare unembedded standards when embed mode is on
+- [ ] Used glyphs present in subset (no silent `.notdef` for used chars)
+- [ ] Subset glyph widths match original scaled widths
+- [ ] Hyphen width sanity (LiberationSans scaled hyphen often 333)
+- [ ] ToUnicode maps used CIDs to Unicode
+- [ ] Page resources reference embedded font names, not bare unembedded standards when embed mode is on
 
 ## Checklist — modes
 
-- [x] `ModeEmbedFonts` respected
-- [x] Non-embed path still available for non-A demos (simple Type1 / Arlington-style metrics optional)
+- [ ] `ModeEmbedFonts` respected
+- [ ] Non-embed path still available for non-A demos (simple Type1 / Arlington-style metrics optional)
 
 ---
 
 ## Acceptance criteria
 
-- [x] PDF with only embedded Liberation Sans renders text correctly offline (font chain built; actual rendering requires system fonts)
-- [x] Unit tests pass for subset integrity and widths
-- [x] Content stream text uses the embedded font resource name
+- [ ] PDF with only embedded Liberation Sans renders text correctly offline (font chain built; actual rendering requires system fonts)
+- [ ] Unit tests pass for subset integrity and widths
+- [ ] Content stream text uses the embedded font resource name
 
 ---
 

@@ -16,61 +16,61 @@ Default end state: **PDF/A-4 + PDF/UA-2** together.
 
 ## Package layout
 
-- [x] `engine/structure/` — StructureManager, MCID, ParentTree, StructElem emit
-- [x] Extend `engine/content/` — BDC / EMC helpers
+- [ ] `engine/structure/` — StructureManager, MCID, ParentTree, StructElem emit
+- [ ] Extend `engine/content/` — BDC / EMC helpers
 - [ ] Extend `engine/layout/` — table/heading structure hooks (layout → structure bridge pending)
-- [x] Extend `engine/page/` — `/StructParents`, `/Tabs`
-- [x] Extend `engine/meta/` — `pdfuaid` + extension schema
-- [x] `tools/structure_tree_check.py` — ParentTree leaf ownership
+- [ ] Extend `engine/page/` — `/StructParents`, `/Tabs`
+- [ ] Extend `engine/meta/` — `pdfuaid` + extension schema
+- [ ] `tools/structure_tree_check.py` — ParentTree leaf ownership
 
 ---
 
 ## Checklist — mode rules
 
-- [x] `ModePDFUA2` / `Tagged` enables structure manager
-- [x] `ModePDFA4` implies tagged (match gopdfsuit: `tagged := Tagged || PDFA`)
-- [x] Structure methods no-op when disabled (untagged path stays fast)
+- [ ] `ModePDFUA2` / `Tagged` enables structure manager
+- [ ] `ModePDFA4` implies tagged (match gopdfsuit: `tagged := Tagged || PDFA`)
+- [ ] Structure methods no-op when disabled (untagged path stays fast)
 
 ## Checklist — catalog (UA-2)
 
-- [x] `/Lang (en-US)` (or configurable)
-- [x] `/MarkInfo << /Marked true >>`
-- [x] `/StructTreeRoot <id> 0 R`
-- [x] `/ViewerPreferences << /DisplayDocTitle true >>`
-- [x] `/Metadata` present (from phase 4 / always)
+- [ ] `/Lang (en-US)` (or configurable)
+- [ ] `/MarkInfo << /Marked true >>`
+- [ ] `/StructTreeRoot <id> 0 R`
+- [ ] `/ViewerPreferences << /DisplayDocTitle true >>`
+- [ ] `/Metadata` present (from phase 4 / always)
 
 ## Checklist — XMP UA claim
 
-- [x] `pdfuaid:part` = **2**
-- [x] `pdfuaid:rev` = **2024**
-- [x] `pdfaExtension` schema registration for `pdfuaid` `part` + `rev`
-- [x] Keep A-4 `pdfaid` fields when dual-mode
+- [ ] `pdfuaid:part` = **2**
+- [ ] `pdfuaid:rev` = **2024**
+- [ ] `pdfaExtension` schema registration for `pdfuaid` `part` + `rev`
+- [ ] Keep A-4 `pdfaid` fields when dual-mode
 
 ## Checklist — Namespace (PDF 2.0)
 
-- [x] Object: `/Type /Namespace`
-- [x] `/NS (http://iso.org/pdf2/ssn)`
-- [x] StructTreeRoot `/Namespaces [ <ns> 0 R ]`
-- [x] Document StructElem `/NS <ns> 0 R`
+- [ ] Object: `/Type /Namespace`
+- [ ] `/NS (http://iso.org/pdf2/ssn)`
+- [ ] StructTreeRoot `/Namespaces [ <ns> 0 R ]`
+- [ ] Document StructElem `/NS <ns> 0 R`
 
 ## Checklist — StructTreeRoot
 
-- [x] `/Type /StructTreeRoot`
-- [x] `/K` → Document element
-- [x] `/ParentTree` → number tree
-- [x] `/Namespaces` array
+- [ ] `/Type /StructTreeRoot`
+- [ ] `/K` → Document element
+- [ ] `/ParentTree` → number tree
+- [ ] `/Namespaces` array
 
 ## Checklist — structure types (`/S`)
 
 Implement as needed for fixtures; minimum bold items:
 
-- [x] **`/Document`** (required top-level)
-- [x] **`/H1`** (title)
-- [x] **`/P`** (paragraph)
-- [x] **`/Table`**, **`/TR`**, **`/TH`**, **`/TD`**
-- [x] `/Figure` + `/Alt` (image fixture)
-- [x] `/Link` + `/OBJR` (link fixture)
-- [x] Optional later: `/Part`, `/Sect`, `/Div`, `/H2`–`/H6`, lists, `/Caption`, `/Form`, `/Reference`
+- [ ] **`/Document`** (required top-level)
+- [ ] **`/H1`** (title)
+- [ ] **`/P`** (paragraph)
+- [ ] **`/Table`**, **`/TR`**, **`/TH`**, **`/TD`**
+- [ ] `/Figure` + `/Alt` (image fixture)
+- [ ] `/Link` + `/OBJR` (link fixture)
+- [ ] Optional later: `/Part`, `/Sect`, `/Div`, `/H2`–`/H6`, lists, `/Caption`, `/Form`, `/Reference`
 
 ### Table hierarchy (critical)
 
@@ -85,42 +85,42 @@ Document → Table → TR → TD|TH
 
 ## Checklist — StructElem keys
 
-- [x] `/Type /StructElem`
-- [x] `/S /…`
-- [x] `/P` parent (Document’s parent = StructTreeRoot)
-- [x] `/K` kids (MCIDs, child refs, OBJR)
-- [x] `/Pg` where required
-- [x] `/T` title when needed
-- [x] `/Alt` for figures
+- [ ] `/Type /StructElem`
+- [ ] `/S /…`
+- [ ] `/P` parent (Document’s parent = StructTreeRoot)
+- [ ] `/K` kids (MCIDs, child refs, OBJR)
+- [ ] `/Pg` where required
+- [ ] `/T` title when needed
+- [ ] `/Alt` for figures
 
 ### Link OBJR
 
-- [x] `/K [ << /Type /OBJR /Obj <annot> 0 R /Pg <page> 0 R >> ]`
+- [ ] `/K [ << /Type /OBJR /Obj <annot> 0 R /Pg <page> 0 R >> ]`
 
 ## Checklist — marked content (streams)
 
-- [x] Emit `/<S> << /MCID n >> BDC` … `EMC`
-- [x] Optional `/Alt (…)` in BDC properties
-- [x] Per-page MCID counter from 0
-- [x] Pagination chrome as `/Artifact << /Attached [/Top] /Type /Pagination >> BDC` … `EMC` when appropriate
+- [ ] Emit `/<S> << /MCID n >> BDC` … `EMC`
+- [ ] Optional `/Alt (…)` in BDC properties
+- [ ] Per-page MCID counter from 0
+- [ ] Pagination chrome as `/Artifact << /Attached [/Top] /Type /Pagination >> BDC` … `EMC` when appropriate
 
 ## Checklist — ParentTree
 
-- [x] Number tree: `<< /Nums [ pageKey [ elemRefs… ] … ] >>`
-- [x] Array index = MCID
-- [x] Annotation StructParent keys map to Link StructElem
-- [x] Page `/StructParents` only when page has MCIDs
+- [ ] Number tree: `<< /Nums [ pageKey [ elemRefs… ] … ] >>`
+- [ ] Array index = MCID
+- [ ] Annotation StructParent keys map to Link StructElem
+- [ ] Page `/StructParents` only when page has MCIDs
 
 ## Checklist — page UA extras
 
-- [x] `/StructParents n` when tagged content exists
-- [x] `/Tabs /S` when page has annotations (ISO 14289-2 8.9.3.3)
+- [ ] `/StructParents n` when tagged content exists
+- [ ] `/Tabs /S` when page has annotations (ISO 14289-2 8.9.3.3)
 
 ## Checklist — object emit order
 
-- [x] Reserve StructTreeRoot ID before catalog
-- [x] Emit: Namespace → StructTreeRoot → ParentTree → all StructElem objects
-- [x] Assign StructElem object IDs iteratively (parent-before-children)
+- [ ] Reserve StructTreeRoot ID before catalog
+- [ ] Emit: Namespace → StructTreeRoot → ParentTree → all StructElem objects
+- [ ] Assign StructElem object IDs iteratively (parent-before-children)
 
 ---
 
@@ -163,8 +163,8 @@ Document → Table → TR → TD|TH
 
 - [ ] Dual-mode fixtures PASS veraPDF **`-f 4`** and **`-f ua2`** (requires veraPDF installed)
 - [ ] structure_tree_check PASS on table fixtures (requires Python + pdfminer)
-- [x] Catalog contains MarkInfo, StructTreeRoot, Lang, ViewerPreferences
-- [x] XMP contains both pdfaid (4/2020) and pdfuaid (2/2024)
+- [ ] Catalog contains MarkInfo, StructTreeRoot, Lang, ViewerPreferences
+- [ ] XMP contains both pdfaid (4/2020) and pdfuaid (2/2024)
 
 ---
 

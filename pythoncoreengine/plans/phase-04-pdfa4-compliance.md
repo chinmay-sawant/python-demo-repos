@@ -14,70 +14,70 @@ Emit documents that **claim and pass PDF/A-4** (ISO 19005-4 / PDF 2.0 archival) 
 
 ## Package layout
 
-- [x] `engine/meta/` — XMP packet builder
-- [x] `engine/color/` — sRGB + Gray ICC profiles (pre-compressed)
-- [x] `engine/pdfa/` — OutputIntent, A-4 rules, trailer Info omission
-- [x] `compliance/verapdf/` — real checks for flavour `4`
+- [ ] `engine/meta/` — XMP packet builder
+- [ ] `engine/color/` — sRGB + Gray ICC profiles (pre-compressed)
+- [ ] `engine/pdfa/` — OutputIntent, A-4 rules, trailer Info omission
+- [ ] `compliance/verapdf/` — real checks for flavour `4`
 
 ---
 
 ## Checklist — mode rules
 
-- [x] `ModePDFA4` enables this phase’s object set
-- [x] `ModeEmbedFonts` forced true under A-4
-- [x] No bare unembedded standard fonts in A-4 mode
-- [x] Optional: `ModePDFA4` implies tagged later (phase 5); for pure A-4 first fixture, keep untagged only if validator allows — **prefer enabling tagging after phase 5**; first A-4 gate can be A-4-only fixtures if needed
+- [ ] `ModePDFA4` enables this phase’s object set
+- [ ] `ModeEmbedFonts` forced true under A-4
+- [ ] No bare unembedded standard fonts in A-4 mode
+- [ ] Optional: `ModePDFA4` implies tagged later (phase 5); for pure A-4 first fixture, keep untagged only if validator allows — **prefer enabling tagging after phase 5**; first A-4 gate can be A-4-only fixtures if needed
 
 > Note: gopdfsuit pairs A-4 with UA-2 in production. For this phase, prioritize **veraPDF `-f 4` PASS**. Full dual claim is phase 5 exit.
 
 ## Checklist — XMP metadata stream
 
 Object tags:
-- [x] `/Type /Metadata`
-- [x] `/Subtype /XML`
-- [x] `/Length …`
+- [ ] `/Type /Metadata`
+- [ ] `/Subtype /XML`
+- [ ] `/Length …`
 
 Packet:
-- [x] `xpacket` begin with BOM + id `W5M0MpCehiHzreSzNTczkc9d`
-- [x] `xpacket end="w"` + padding
-- [x] `pdfaid:part` = **4**
-- [x] `pdfaid:rev` = **2020**
-- [x] `xmp:CreateDate`, `xmp:ModifyDate`, `xmp:MetadataDate`
-- [x] `xmp:CreatorTool`
-- [x] `dc:format` = `application/pdf`
-- [x] Optional: `dc:title`, `dc:creator`, `dc:description`, `dc:subject`
-- [x] `pdf:Producer`
-- [x] `xmpMM:DocumentID`, `xmpMM:InstanceID` (`uuid:…`)
+- [ ] `xpacket` begin with BOM + id `W5M0MpCehiHzreSzNTczkc9d`
+- [ ] `xpacket end="w"` + padding
+- [ ] `pdfaid:part` = **4**
+- [ ] `pdfaid:rev` = **2020**
+- [ ] `xmp:CreateDate`, `xmp:ModifyDate`, `xmp:MetadataDate`
+- [ ] `xmp:CreatorTool`
+- [ ] `dc:format` = `application/pdf`
+- [ ] Optional: `dc:title`, `dc:creator`, `dc:description`, `dc:subject`
+- [ ] `pdf:Producer`
+- [ ] `xmpMM:DocumentID`, `xmpMM:InstanceID` (`uuid:…`)
 
 Catalog:
-- [x] `/Metadata <id> 0 R`
+- [ ] `/Metadata <id> 0 R`
 
 ## Checklist — OutputIntent + ICC
 
 ### ICC sRGB stream
-- [x] `/N 3`
-- [x] `/Alternate /DeviceRGB`
-- [x] `/Filter /FlateDecode`
-- [x] Valid ICC v2.1 profile bytes
+- [ ] `/N 3`
+- [ ] `/Alternate /DeviceRGB`
+- [ ] `/Filter /FlateDecode`
+- [ ] Valid ICC v2.1 profile bytes
 
 ### ICC Gray stream
-- [x] `/N 1`
-- [x] `/Alternate /DeviceGray`
-- [x] `/Filter /FlateDecode`
+- [ ] `/N 1`
+- [ ] `/Alternate /DeviceGray`
+- [ ] `/Filter /FlateDecode`
 
 ### OutputIntent
-- [x] `/Type /OutputIntent`
-- [x] `/S /GTS_PDFA1`
-- [x] `/OutputConditionIdentifier` (e.g. sRGB IEC61966-2.1)
-- [x] `/RegistryName` (e.g. http://www.color.org)
-- [x] `/Info`
-- [x] `/DestOutputProfile` → sRGB ICC
+- [ ] `/Type /OutputIntent`
+- [ ] `/S /GTS_PDFA1`
+- [ ] `/OutputConditionIdentifier` (e.g. sRGB IEC61966-2.1)
+- [ ] `/RegistryName` (e.g. http://www.color.org)
+- [ ] `/Info`
+- [ ] `/DestOutputProfile` → sRGB ICC
 
 ### Catalog
-- [x] `/OutputIntents [ <oi> 0 R ]`
+- [ ] `/OutputIntents [ <oi> 0 R ]`
 
 ### Page resources
-- [x] `/ColorSpace << /DefaultRGB [/ICCBased <srgb> 0 R] /DefaultGray [/ICCBased <gray> 0 R] >>`
+- [ ] `/ColorSpace << /DefaultRGB [/ICCBased <srgb> 0 R] /DefaultGray [/ICCBased <gray> 0 R] >>`
 
 ## Checklist — images under A-4
 
@@ -86,23 +86,23 @@ Catalog:
 
 ## Checklist — trailer / Info
 
-- [x] **Omit** trailer `/Info` under A-4
-- [x] Do **not** emit Info dictionary object under A-4
-- [x] Keep trailer `/ID`
-- [x] Keep trailer `/Root`, `/Size`
+- [ ] **Omit** trailer `/Info` under A-4
+- [ ] Do **not** emit Info dictionary object under A-4
+- [ ] Keep trailer `/ID`
+- [ ] Keep trailer `/Root`, `/Size`
 
 ## Checklist — fonts under A-4
 
-- [x] All text uses Liberation (or other fully embedded) fonts via phase 3 chain
-- [x] No incomplete Type1 standard-only font objects in A-4 mode
+- [ ] All text uses Liberation (or other fully embedded) fonts via phase 3 chain
+- [ ] No incomplete Type1 standard-only font objects in A-4 mode
 
 ## Checklist — object ID reservation (before catalog write)
 
-- [x] Reserve Metadata object ID
-- [x] Reserve ICC sRGB ID
-- [x] Reserve OutputIntent ID
-- [x] Reserve ICC Gray ID
-- [x] Catalog refs use reserved IDs (no post-hoc placeholder rewrite)
+- [ ] Reserve Metadata object ID
+- [ ] Reserve ICC sRGB ID
+- [ ] Reserve OutputIntent ID
+- [ ] Reserve ICC Gray ID
+- [ ] Catalog refs use reserved IDs (no post-hoc placeholder rewrite)
 
 ## Checklist — non-goals (defer)
 
@@ -147,9 +147,9 @@ Catalog:
 
 - [ ] `minimal-text` **PASS** veraPDF flavour `4`
 - [ ] `minimal-text` **PASS** veraPDF flavour `4` (requires veraPDF installed)
-- [x] No trailer `/Info` in A-4 mode
-- [x] Catalog has `/Metadata` and `/OutputIntents`
-- [x] Page resources include DefaultRGB/DefaultGray ICCBased
+- [ ] No trailer `/Info` in A-4 mode
+- [ ] Catalog has `/Metadata` and `/OutputIntents`
+- [ ] Page resources include DefaultRGB/DefaultGray ICCBased
 
 ---
 
