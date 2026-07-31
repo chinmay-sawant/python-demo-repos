@@ -1,4 +1,4 @@
-# gocorepdfengine — PDF Engine Plan (PDF/A-4 + PDF/UA-2)
+# pythoncorepdfengine — PDF Engine Plan (PDF/A-4 + PDF/UA-2)
 
 **Status:** Draft — engine-layout scan of gopdfsuit  
 **Source of truth scanned:** `gopdfsuit/internal/pdf/**`, `internal/models`, compliance tests under `test/`  
@@ -19,7 +19,7 @@ The existing entry point is effectively:
 | `GenerateTemplatePDFBorrowed` | Real pipeline: page manager, content, fonts, catalog, structure, trailer |
 | Config flags | `pdfaCompliant`, `taggedPDF`, `arlingtonCompatible`, `embedFonts`, nested `pdfa` |
 
-For gocorepdfengine, treat those as **engine modes**, not JSON product config.
+For pythoncorepdfengine, treat those as **engine modes**, not JSON product config.
 
 ---
 
@@ -87,10 +87,10 @@ Optional later levels (already partially modeled in gopdfsuit `PDFAConfig.Confor
 
 ## 4. Engine package layout (from-scratch proposal)
 
-Layout is conceptual; implement under `gocorepdfengine` as deep modules with small public surfaces.
+Layout is conceptual; implement under `pythoncorepdfengine` as deep modules with small public surfaces.
 
 ```
-gocorepdfengine/
+pythoncorepdfengine/
   plans/                          # this document lives here
   engine/
     doc/                          # Document builder, object ID allocator, buffer
@@ -657,7 +657,7 @@ Signatures, encryption (non-A), AcroForm `/V`/`/AS` widgets, XFDF, merge — sep
 
 ## 12. Testing plan — veraPDF placeholders
 
-> **Placeholder section:** flesh out once `engine` can emit files. Paths assume future `gocorepdfengine` layout.
+> **Placeholder section:** flesh out once `engine` can emit files. Paths assume future `pythoncorepdfengine` layout.
 
 ### 12.1 Tooling
 
@@ -755,7 +755,7 @@ When `PDFA` is true, engine implies `Tagged` true (match gopdfsuit generator log
 
 ---
 
-## 14. Traceability: gopdfsuit → gocorepdfengine
+## 14. Traceability: gopdfsuit → pythoncorepdfengine
 
 | gopdfsuit concept | New module |
 |-------------------|------------|
@@ -782,7 +782,7 @@ When `PDFA` is true, engine implies `Tagged` true (match gopdfsuit generator log
 
 ## 16. Recommended next actions
 
-1. Scaffold `gocorepdfengine/engine` packages with empty interfaces matching §4.
+1. Scaffold `pythoncorepdfengine/engine` packages with empty interfaces matching §4.
 2. Implement Phase A (minimal PDF 2.0 writer) with unit tests on object offsets.
 3. Wire `compliance/verapdf/run_verapdf.sh` placeholder even before fixtures exist (skip logic).
 4. Implement Phase C → D until first `minimal-text` PDF passes veraPDF `-f 4`.

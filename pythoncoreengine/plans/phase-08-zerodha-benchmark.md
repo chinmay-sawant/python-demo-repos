@@ -1,4 +1,4 @@
-# Phase 8 — Zerodha-Style Benchmark (gocorepdfengine only)
+# Phase 8 — Zerodha-Style Benchmark (pythoncorepdfengine only)
 
 **Status:** Harness on local engine (JSON → model → layout → PDF)  
 **No gopdfsuit dependency.** Templates only inspired by the Zerodha gold-standard mix.
@@ -12,7 +12,7 @@ That guide is the full generic PDF template shape (`config`, `title`, `elements`
 
 ## Goal
 
-Benchmark gocorepdfengine’s **layout + coloring + document assembly** on a Zerodha-like 80/15/5 workload:
+Benchmark pythoncorepdfengine’s **layout + coloring + document assembly** on a Zerodha-like 80/15/5 workload:
 
 | Tier | Share | Source |
 |------|-------|--------|

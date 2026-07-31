@@ -1,4 +1,4 @@
-# gocorepdfengine — Phase Plans
+# pythoncorepdfengine — Phase Plans
 
 Source: [baseplan/base-pdf-engine-pdfa4-pdfua2-plan.md](./baseplan/base-pdf-engine-pdfa4-pdfua2-plan.md)
 
