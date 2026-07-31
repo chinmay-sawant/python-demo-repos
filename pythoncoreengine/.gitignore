@@ -1,0 +1,30 @@
+# Build
+/bin/
+*.exe
+*.test
+*.out
+
+# veraPDF CLI install (make install-verapdf)
+/verapdf/
+
+# Supplementary validators venv (make install-pdf-validators)
+/.pdf-validators/
+
+# Generated / local
+*.log
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Optional compliance report dumps
+/compliance/expected/
+/compliance/fixtures/**/*.json
+__pycache__/
+*.pyc
+
+# Zerodha bench outputs
+/sampledata/zerodha/zerodha_*_output.pdf
+/sampledata/zerodha/zerodha_*_nocomply_output.pdf
+
+*.prof
