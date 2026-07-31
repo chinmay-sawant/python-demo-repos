@@ -2,7 +2,7 @@
 
 > **Canonical ledger:** `/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/plans/perf-evaluation/README.md`
 > **Parent skill:** `/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/plans/phase-wise-checklist/SKILLS.md`
-> **Status:** Baseline recorded — do not change until an improvement row in the ledger is implemented; re-run per Phase 5 gates in `04-cross-cutting-and-gates.md`.
+> **Status:** Baselines recorded 2026-07-31 (the `before` side); **post-fix measurements appended 2026-08-01** below each section. Re-run per Phase 5 gates in `04-cross-cutting-and-gates.md`.
 
 ## Environment (must be identical for re-runs)
 
@@ -60,6 +60,16 @@ degrades to 0 throughput once the pool (10+5) is exhausted; `pool_timeout=30` th
 
 **Ledger row:** `01-fastapi-live-metrics-ingest.md` — **FA-9** (new). Fix: FA-4 (drop BaseHTTPMiddleware) + validate with the repro.
 
+**Post-fix re-check (2026-08-01, sqlite dev stack):** `BaseHTTPMiddleware` is gone (pure ASGI middleware) and
+single-request latency is unchanged (**wide window 0.62–0.66s; narrow 1h window 18ms; 3× concurrent wide all 200,
+pool alive**), but **8× concurrent wide-window GETs still hang >20s and wedge the pool — FA-9 NOT closed.** The
+wedge reproduces without HTTP: 8 raw aiosqlite sessions hang, and even **plain `sqlite3` threads doing a
+195k-row `fetchall` hang with 4+ threads while `count(*)` with 4 threads completes in 72ms** (WAL mode does not
+help; 2 threads OK). Conclusion: the original middleware diagnosis was wrong — this is a sqlite-level
+large-result-set fetch concurrency problem on the dev stack. The real fix is the FA-1 Postgres pushdown
+(`percentile_cont` — 1 row back instead of ~200k) plus Postgres for the read path; FA-9/FA-1 validation stays
+gated on a Postgres host.
+
 ### 1d. CPU hot path (in-process, `bench/microbench.py`)
 
 | Operation | Cost |
@@ -103,6 +113,20 @@ DB: `db.sqlite3` (created via `python3 manage.py migrate --run-syncdb`). Server:
 | `reserve()` + `confirm()` 20 lines | 68.4 ms | **166** |
 | `release_expired()` (empty) | 0.8 ms | 2 |
 
+**Post-fix (2026-08-01, `bench/reserve_bench.py`, sqlite, warm):**
+
+| Operation | Time | Queries |
+|---|---|---|
+| `reserve()` 1 line | **5.4 ms** (was 6.6) | **7** (unchanged) |
+| `reserve()` 5 lines | **8.2 ms** (was 13.3) | **15** (was 27) |
+| `reserve()` 20 lines | **17.0 ms** (was 34.0) | **45** (was 102, DJ-1/DJ-2) |
+| `reserve()` + `confirm()` 20 lines | **32.5 ms** (was 68.4) | **72** (was 166) |
+| `release_expired()` (empty) | **0.3 ms** | 2 |
+
+k6 after (fresh server, 3-run medians, 0% errors): availability **~136.7 req/s** (was 123.4);
+rollup **~174.9 req/s** (unchanged). Tests: **31/31 pass** (was 24/25; sqlite concurrency test fixed
+via `sqlite3_immediate` BEGIN IMMEDIATE backend).
+
 ---
 
 ## 3. flask-partner-webhook-relay
@@ -129,20 +153,26 @@ Server: Werkzeug dev server, port 8103, threaded.
 Command: `python3 -m bench.delivery_bench` (mock `ThreadingHTTPServer` on 127.0.0.1:8200 sleeps 200ms; 3 rounds, median).
 The 10.4s quantifies FL-1: one slow partner serializes the whole queue.
 
+**Post-fix (2026-08-01, `python3 -m bench.delivery_bench`):** 50-item fan-out **1.05s median** (was 10.40s, 9.9×;
+at the ⌈50/10⌉ × 200ms concurrency floor). Ingest k6 after (fresh server): **121.3 req/s / 629ms med** and
+**146.0 req/s / 477ms med** (was 116.0 req/s / 619ms; 0% errors). Maintenance (100k-row fixtures):
+purge **4.80s**, redrive **0.46s with flat RSS**. Tests: **24 pass + 1 skip + 1 xfail** (was 7 + 1 xfail;
+skip = FL-2 disjoint-claim proof, Postgres-gated).
+
 ---
 
 ## 4. Cross-project summary
 
-| Project | Endpoint / op | Baseline result | Ledger rows to improve it |
-|---|---|---|---|
-| fastapi | ingest (100-sample batch) | 29 req/s, 2.94s med | FA-2/3/5, FA-9 (pool) |
-| fastapi | percentiles (267k rows) | 0.6s single; **0 req/s concurrent** (pool exhaust) | FA-9, FA-1, FA-2 |
-| fastapi | app-side sort 1M rows | 217 ms | FA-1 |
-| django | rollup | 175 req/s, 524ms med | DJ-6 |
-| django | batch availability | 123 req/s, 728ms med | DJ-6 |
-| django | reserve 20-line order | 34ms / **102 queries** | DJ-1, DJ-2 |
-| flask | webhook ingest | 116 req/s, 619ms med | FL-4 |
-| flask | delivery fan-out 50 items | **10.40s sequential** | FL-1, FL-2 |
+| Project | Endpoint / op | Baseline result | After (2026-08-01) | Ledger rows to improve it |
+|---|---|---|---|---|
+| fastapi | ingest (100-sample batch) | 29 req/s, 2.94s med | not re-measured (Postgres-gated) | FA-2/3/5, FA-9 (pool) |
+| fastapi | percentiles (267k rows) | 0.6s single; **0 req/s concurrent** (pool exhaust) | 0.66s single; **8× concurrent still wedges** (sqlite dev stack) | FA-9, FA-1, FA-2 |
+| fastapi | app-side sort 1M rows | 217 ms | n/a (FA-1 pushdown is Postgres-only) | FA-1 |
+| django | rollup | 175 req/s, 524ms med | 175 req/s (flat) | DJ-6 |
+| django | batch availability | 123 req/s, 728ms med | **~137 req/s** | DJ-6 |
+| django | reserve 20-line order | 34ms / **102 queries** | **17ms / 45 queries** | DJ-1, DJ-2 |
+| flask | webhook ingest | 116 req/s, 619ms med | **121–146 req/s, 477–629ms med** | FL-4 |
+| flask | delivery fan-out 50 items | **10.40s sequential** | **1.05s concurrent (9.9×)** | FL-1, FL-2 |
 
 ## 5. Re-run procedure
 

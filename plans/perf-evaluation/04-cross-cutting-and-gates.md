@@ -1,7 +1,7 @@
 # Phase 4+5 — Cross-Cutting, Observability, Deployment & Closure Gates
 
 > **Canonical ledger:** `/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/plans/perf-evaluation/README.md`
-> **Status:** Not started
+> **Status:** In progress
 > **Applies to:** all three projects (fastapi-live-metrics-ingest, django-flash-sale-inventory, flask-partner-webhook-relay)
 
 ---
@@ -66,7 +66,7 @@ Django defaults to per-request connections and Flask to none.
 SQLALCHEMY_ENGINE_OPTIONS = {"pool_size": 10, "max_overflow": 5, "pool_pre_ping": True}
 ```
 
-- [ ] **XC-2** — apply all three; Expected: no pool errors during 1h soak at target load. Proof: 1h soak logs show zero `pool_timeout` / `connection is closed` errors.
+- [~] **XC-2** — config applied in all three (via FA-5/DJ-7/FL-7): fastapi `pool_recycle=1800` + `pool_pre_ping=True` (`app/config.py:10-11`, applied in `app/database.py:19-20`); django `CONN_MAX_AGE=60` + `CONN_HEALTH_CHECKS=True` (`flash_sale/settings.py:77-78`); flask `SQLALCHEMY_ENGINE_OPTIONS = {"pool_size": 10, "max_overflow": 5, "pool_pre_ping": True}` (`app/config.py:7-10`). The 1h soak proof (zero `pool_timeout` / `connection is closed` in soak logs) is a prod/Postgres gate that cannot run here — pending Postgres/prod.
 
 <a id="XC-3"></a>
 ### XC-3 [MED] — Production server configuration (documented commands)
@@ -125,7 +125,7 @@ CMD ["flask", "run", "--host", "0.0.0.0", "--port", "8000"]              # flask
 **Change to** — drop `@csrf_exempt` (use `@csrf_protect` + JSON header auth, or Django REST-style token auth)
 and add `USER non-root` before each `CMD`.
 
-- [ ] **XC-5** — apply; Expected: 0 blocking findings on re-scan. Proof: `semgrep --config=auto` → 0 findings (command + output recorded in this row).
+- [~] **XC-5** — django csrf_exempt removed (`inventory/views.py` now uses `@ensure_csrf_cookie` L13 + `@csrf_protect` L21); Dockerfile `USER non-root` pending in all 3 images (fastapi Dockerfile:12, django Dockerfile:16, flask Dockerfile:15 — verified absent); semgrep rescan pending. Expected: 0 blocking findings on re-scan. Proof: `semgrep --config=auto` → 0 findings (command + output recorded in this row).
 
 ---
 

@@ -1,7 +1,7 @@
 # Performance Evaluation — Index & Executive Summary
 
 > **Parent:** `/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/plans/phase-wise-checklist/SKILLS.md`
-> **Status:** Evaluation complete (2026-07-31); improvements not started — per-phase ledgers below are live execution rows
+> **Status:** Evaluation complete (2026-07-31); improvements in progress — 1/30 rows closed (XC-1), 2/30 partial (XC-2, XC-5 [~]), 27/30 open — per-phase ledgers below are live execution rows
 > **Estimated effort:** Phase 1 ~2d · Phase 2 ~2d · Phase 3 ~1.5d · Phase 4 ~1d · Gates ~1d
 
 ---

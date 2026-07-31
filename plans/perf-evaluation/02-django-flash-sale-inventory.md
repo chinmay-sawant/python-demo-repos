@@ -1,7 +1,7 @@
 # Phase 2 — django-flash-sale-inventory (Evaluation + Improvements)
 
 > **Canonical ledger:** `/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/plans/perf-evaluation/README.md`
-> **Status:** Evaluation complete; improvements not started
+> **Status:** Evaluation complete; DJ-1..DJ-6 + DJ-8 applied & verified; DJ-7 config applied, Postgres proof pending
 > **Project root:** `/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/django-flash-sale-inventory`
 > **Baseline:** `python3 manage.py test` → 24 passed, **1 FAILED** — `test_concurrent_reserve_no_deadlock`
 > (`inventory/tests.py:399`, sqlite `database table is locked`)
@@ -52,7 +52,7 @@ for item in items:
     item_details.append({'sku': sku, 'stock': stock, 'quantity': item['quantity']})
 ```
 
-- [ ] **DJ-1** — apply change; Expected: 2N queries → ~2. Proof: query-count assertion via `django.db.connection.queries` in tests (`inventory/tests.py`); `python3 manage.py test` still 24/25 (same single failure until DJ-7).
+- [x] **DJ-1** — applied; `_fetch_skus`/`_resolve_warehouse` hoist Sku+Warehouse out of the loop. Proof: `DJANGO_DB_ENGINE=sqlite PYTHONPATH=. python3 bench/reserve_bench.py` → reserve(20)=45q (was 102q), reserve(5)=15q (was 27q); `QueryCountTest.test_reserve_20_lines_query_count` (`inventory/tests.py:289`) asserts exactly 1 `inventory_sku` SELECT and ≤46 data queries; `DJANGO_DB_ENGINE=sqlite python3 manage.py test` → 31 passed.
 
 ---
 
@@ -109,7 +109,7 @@ StockLedger.objects.bulk_create([
 ])
 ```
 
-- [ ] **DJ-2** — apply change; Expected: 3N writes → ≤ N+2. Proof: query-count test; existing reserve/confirm/cancel tests pass.
+- [x] **DJ-2** — applied; `_apply_reserve` uses `ReservationLine.objects.bulk_create` + per-stock `F('reserved_quantity')` updates + `StockLedger.objects.bulk_create` (`reservation.py:146-172`). Proof: `DJANGO_DB_ENGINE=sqlite PYTHONPATH=. python3 bench/reserve_bench.py` → reserve(20)=45q (was 102q), 34.0→21.2ms (~38% faster); query-count test + full suite pass (31).
 
 ---
 
@@ -159,7 +159,7 @@ for line in lines:
 Apply the same pattern to `cancel` (L119-128, delta `+line.quantity`, no `quantity` change) and
 `release_expired` (L145-154, delta `+line.quantity`).
 
-- [ ] **DJ-3** — apply change; Expected: no lost updates under concurrency; fewer round-trips. Proof: two parallel confirms on the same stock → final stock == expected; `python3 manage.py test` green (the sqlite lock failure closes via DJ-7, not here).
+- [x] **DJ-3** — applied; confirm/cancel/release all use single OR'd `Q()` lock query + atomic `F()` updates (`reservation.py:180-231`), no read-modify-write. Proof: `ReservationConcurrencyTest.test_concurrent_confirm_no_lost_update` (2 threads confirm on same stock → `quantity == 80`, both deltas applied) passes; bench reserve+confirm(20)=72q (was 90q); suite 31 passed.
 
 ---
 
@@ -212,7 +212,7 @@ def release_expired(self, batch_size: int = 500):
     return count
 ```
 
-- [ ] **DJ-4** — apply change; Expected: lock hold time bounded; `reserve` no longer starves. Proof: instrument lock wait time under concurrent reserve+expire; management command (`inventory/management/commands/expire_reservations.py:9-11`) still reports the correct count.
+- [x] **DJ-4** — applied; `release_expired(batch_size=500)` iterates `select_for_update(skip_locked=True)[:batch_size]` in per-batch `transaction.atomic()` blocks, breaks when `processed < batch_size` (`reservation.py:64-83`). Proof: `test_release_expired_chunked_batches` (batch_size=2 over 3 reservations → all EXPIRED, stock released) passes; `DJANGO_DB_ENGINE=sqlite python3 manage.py expire_reservations` → exit 0; idle sweep 2q / 0.3ms.
 
 ---
 
@@ -254,7 +254,7 @@ except IntegrityError:
     return Reservation.objects.get(idempotency_key=idempotency_key)
 ```
 
-- [ ] **DJ-5** — apply change; Expected: concurrent duplicate keys return the existing reservation, never 500. Proof: new test firing the same key from 2 threads.
+- [x] **DJ-5** — applied; duplicate-key create wrapped in `transaction.atomic()`, `except IntegrityError` → `set_rollback` → return `Reservation.objects.get(idempotency_key=...)` (`reservation.py:128-144`). Proof: `ReservationConcurrencyTest.test_concurrent_same_idempotency_key` (2 threads, same key → both return same reservation id, exactly 1 row, stock reserved exactly once) passes; suite 31 passed.
 
 ---
 
@@ -310,7 +310,7 @@ def get_warehouse_rollup(self, warehouse_code):
 ```
 (import `from django.db import models` — or `F` directly.)
 
-- [ ] **DJ-6** — apply change; Expected: bounded memory per request; no ORM hydration on read path. Proof: body-limit unit test; assert `QuerySet.values` used (no model hydration) via query log.
+- [x] **DJ-6** — applied; `views.py:9,24-27` caps body at 256 KiB → 413 before `json.loads`; `availability.py:32-41` rollup is one `.values()`/`annotate` projection (dict rows, no ORM hydration). Proof: `test_batch_availability_payload_too_large` (100k-sku body → 413) and `test_get_warehouse_rollup_single_query_values_projection` (exactly 1 query, all-dict rows) pass; suite 31 passed.
 
 ---
 
@@ -361,7 +361,7 @@ DATABASES = {
 }
 ```
 
-- [ ] **DJ-7** — apply change; Expected: 25/25 tests pass on Postgres (row locks instead of sqlite file lock); connection reuse cuts handshake cost. Proof: `python3 manage.py test` green against local Postgres; record the DB setup command + dataset in this row.
+- [~] **DJ-7** — code IS applied: env-driven (`DJANGO_DB_ENGINE` default `postgresql` w/ `CONN_MAX_AGE=60` + `CONN_HEALTH_CHECKS=True`, `DJANGO_DEBUG` gated, `DJANGO_ALLOWED_HOSTS` list, sqlite3_immediate backend for local) — but the ledger's proof (25/25 on a real Postgres server) cannot run here. Reason: Postgres server unavailable; config applied, verified on sqlite (31 pass via `DJANGO_DB_ENGINE=sqlite python3 manage.py test`); next gate: Postgres host.
 
 ---
 
@@ -392,4 +392,4 @@ class Meta:
     ]
 ```
 
-- [ ] **DJ-8** — apply change; Expected: no sort step on the order-by-quantity branch. Proof: `EXPLAIN` shows Index Scan w/o Sort for the multi-warehouse filter.
+- [x] **DJ-8** — applied; `models.py:57` `indexes = (models.Index(fields=["sku", "-quantity"]),)` + migration `inventory/migrations/0001_initial.py:109` (`inventory_w_sku_id_48c510_idx`). Proof: `DJANGO_DB_ENGINE=sqlite python3 manage.py makemigrations --check --dry-run` → no drift; EXPLAIN (sqlite): `SEARCH inventory_warehousestock USING INDEX inventory_w_sku_id_48c510_idx`, no "USE TEMP B-TREE FOR ORDER BY".
