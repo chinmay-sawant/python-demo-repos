@@ -10,7 +10,6 @@ from app.services.ingest import IngestService, normalize_route
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-
 _old_route_cleanup_re = re.compile(r"\?.*$")
 _old_numeric_segment_re = re.compile(r"/\d+(/|$)")
 
@@ -70,6 +69,7 @@ async def _make_factory(tmp_path):
 
 def _sample(route_label="/api/orders/1/items/2", latency_ms=10.0):
     from datetime import datetime
+
     return MetricSampleIn(
         route_label=route_label,
         latency_ms=latency_ms,

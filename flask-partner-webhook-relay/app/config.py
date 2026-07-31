@@ -1,9 +1,10 @@
 import os
+from typing import ClassVar
 
 
 class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "postgresql://postgres@localhost/relay")
-    SQLALCHEMY_ENGINE_OPTIONS = {
+    SQLALCHEMY_ENGINE_OPTIONS: ClassVar[dict[str, object]] = {
         "pool_size": 10,
         "max_overflow": 5,
         "pool_pre_ping": True,

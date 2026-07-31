@@ -19,10 +19,10 @@ format-check:
 	@echo "format-check: ruff format OK"
 
 typecheck:
-	$(foreach p,$(PROJECTS),mypy --ignore-missing-imports --exclude '*/migrations/*' $(p);)
+	$(foreach p,$(PROJECTS),mypy --ignore-missing-imports --exclude '.*/migrations/' $(p);)
 
 security:
-	bandit -q -r $(PROJECTS)
+	bandit --configfile pyproject.toml -q -r $(PROJECTS)
 	@echo "security: bandit OK"
 
 deadcode:

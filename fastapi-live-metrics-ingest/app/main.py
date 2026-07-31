@@ -18,6 +18,7 @@ async def lifespan(app: FastAPI):
     yield
     await engine.dispose()
 
+
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(RequestTimingMiddleware)
@@ -29,9 +30,11 @@ from app.routers import ingest as ingest_router
 app.include_router(ingest_router.router)
 app.include_router(dashboard_router.router)
 
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
 
 @app.get("/api/v1/debug/tenant-context")
 async def debug_tenant_context(request: Request):

@@ -1,5 +1,6 @@
 import threading
 from http.server import ThreadingHTTPServer
+from typing import ClassVar
 
 import pytest
 from app import create_app
@@ -13,8 +14,9 @@ from tests.helpers import MockPartnerHandler
 class TestConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
-    SQLALCHEMY_ENGINE_OPTIONS = {}
+    SQLALCHEMY_ENGINE_OPTIONS: ClassVar[dict[str, object]] = {}
     INGEST_API_KEY = "test-api-key"
+
 
 @pytest.fixture
 def app():
@@ -24,6 +26,7 @@ def app():
         yield app
         _db.session.remove()
         _db.drop_all()
+
 
 @pytest.fixture
 def worker_app(tmp_path):
@@ -37,14 +40,17 @@ def worker_app(tmp_path):
         _db.session.remove()
         _db.drop_all()
 
+
 @pytest.fixture
 def client(app):
     return app.test_client()
+
 
 @pytest.fixture
 def db(app):
     with app.app_context():
         yield _db
+
 
 @pytest.fixture
 def sample_partner(db):
@@ -60,6 +66,7 @@ def sample_partner(db):
     db.session.add(ep)
     db.session.commit()
     return partner
+
 
 @pytest.fixture
 def mock_partner():

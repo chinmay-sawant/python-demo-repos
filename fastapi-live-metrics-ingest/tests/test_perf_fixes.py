@@ -71,16 +71,18 @@ async def test_fa1_sqlite_fallback_sorts_app_side(tmp_path):
         session.add(batch)
         await session.flush()
         for i, v in enumerate([100.0, 200.0, 300.0, 400.0]):
-            session.add(MetricSample(
-                tenant_id=tenant.id,
-                batch_id=batch.id,
-                route_label="/api/x",
-                latency_ms=v,
-                status_code=200,
-                ua_class="t",
-                timestamp=base + timedelta(seconds=i),
-                created_at=base,
-            ))
+            session.add(
+                MetricSample(
+                    tenant_id=tenant.id,
+                    batch_id=batch.id,
+                    route_label="/api/x",
+                    latency_ms=v,
+                    status_code=200,
+                    ua_class="t",
+                    timestamp=base + timedelta(seconds=i),
+                    created_at=base,
+                )
+            )
         await session.commit()
         result = await AggregationService(session).get_percentiles(
             tenant_id=tenant.id,
@@ -125,9 +127,13 @@ def test_fa5_engine_created_with_configured_pool_options(tmp_path):
 
 
 def test_fa5_connect_args_gated_by_driver():
-    pg = _connect_args(Settings(database_url="postgresql+asyncpg://u:p@h/db", statement_timeout_ms=30000))
+    pg = _connect_args(
+        Settings(database_url="postgresql+asyncpg://u:p@h/db", statement_timeout_ms=30000)
+    )
     assert pg == {"server_settings": {"statement_timeout": "30000"}}
-    sq = _connect_args(Settings(database_url="sqlite+aiosqlite:///x.db", statement_timeout_ms=30000))
+    sq = _connect_args(
+        Settings(database_url="sqlite+aiosqlite:///x.db", statement_timeout_ms=30000)
+    )
     assert sq == {}
 
 
@@ -167,7 +173,9 @@ async def test_fa8_export_tick_marks_pending_job_done(tmp_path):
         await manager._run_vendor_export_tick(factory)
 
     async with factory() as session:
-        job = (await session.execute(select(VendorExportJob).where(VendorExportJob.id == job_id))).scalar_one()
+        job = (
+            await session.execute(select(VendorExportJob).where(VendorExportJob.id == job_id))
+        ).scalar_one()
         assert job.status == "DONE"
         assert job.completed_at is not None
         assert job.sample_count == 0
@@ -211,7 +219,9 @@ async def test_fa8_export_tick_marks_pending_job_failed(tmp_path):
         await manager._run_vendor_export_tick(factory)
 
     async with factory() as session:
-        job = (await session.execute(select(VendorExportJob).where(VendorExportJob.id == job_id))).scalar_one()
+        job = (
+            await session.execute(select(VendorExportJob).where(VendorExportJob.id == job_id))
+        ).scalar_one()
         assert job.status == "FAILED"
         assert job.completed_at is None
         assert job.error_message == "boom"

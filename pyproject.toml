@@ -6,6 +6,7 @@ exclude = [
 ]
 
 [tool.ruff.lint]
+external = ["V107"]
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -33,6 +34,10 @@ extend-immutable-calls = [
 "**/bench/**" = ["E402", "S106", "S311"]
 "fastapi-live-metrics-ingest/app/main.py" = ["E402"]
 "flask-partner-webhook-relay/app/services/delivery.py" = ["S311"]
+"flask-partner-webhook-relay/app/database.py" = ["UP040"]
 
 [tool.bandit]
 exclude_dirs = ["tests", "migrations", "bench"]
+
+[tool.vulture]
+exclude = ["**/tests/**", "**/bench/**", "**/migrations/**"]

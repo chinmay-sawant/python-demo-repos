@@ -11,8 +11,10 @@ from app.schemas import IngestRequest, IngestResponse
 
 _numeric_segment_re = re.compile(r"/\d+(/|$)")
 
+
 def normalize_route(label: str) -> str:
     return _numeric_segment_re.sub(r"/{id}\1", label.split("?", 1)[0])
+
 
 class IngestService:
     def __init__(self, session: AsyncSession, settings: Settings):
@@ -53,7 +55,7 @@ class IngestService:
                 await self.session.flush()
             except IntegrityError:
                 await self.session.rollback()
-                existing = await self._find_batch_by_key(request.idempotency_key)
+                existing = await self._find_batch_by_key(request.idempotency_key or "")
                 if existing:
                     return IngestResponse(
                         accepted=existing.sample_count,

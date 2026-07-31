@@ -28,7 +28,7 @@ async def main():
         chunk = 10_000
         routes = [f"/api/orders/{i % 500}/items/{i % 20}" for i in range(1000)]
         base = now - timedelta(hours=24)
-        for start in range(0, SAMPLE_ROWS, chunk):
+        for _start in range(0, SAMPLE_ROWS, chunk):
             rows = [
                 {
                     "tenant_id": tenant_id,

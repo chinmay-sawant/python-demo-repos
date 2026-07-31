@@ -3,6 +3,7 @@ import time
 
 logger = logging.getLogger(__name__)
 
+
 class RequestTimingMiddleware:
     def __init__(self, app):
         self.app = app
@@ -28,6 +29,7 @@ class RequestTimingMiddleware:
             await send(message)
 
         await self.app(scope, receive, send_with_timing)
+
 
 class TenantHeaderMiddleware:
     def __init__(self, app):

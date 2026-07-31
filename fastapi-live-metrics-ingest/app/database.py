@@ -8,6 +8,7 @@ def _connect_args(settings: Settings) -> dict:
         return {"server_settings": {"statement_timeout": str(settings.statement_timeout_ms)}}
     return {}
 
+
 def create_engine(settings: Settings):
     return create_async_engine(
         settings.database_url,
@@ -19,6 +20,7 @@ def create_engine(settings: Settings):
         pool_recycle=settings.pool_recycle,
         connect_args=_connect_args(settings),
     )
+
 
 def create_session_factory(engine):
     return async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)

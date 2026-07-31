@@ -12,10 +12,12 @@ def _setup_app_state():
     app.state.session_factory = MagicMock()
     app.state.engine = MagicMock()
 
+
 @pytest.fixture
 def client():
     transport = ASGITransport(app=app)
     return AsyncClient(transport=transport, base_url="http://test")
+
 
 @pytest.fixture
 def mock_session():

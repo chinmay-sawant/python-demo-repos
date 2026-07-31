@@ -26,7 +26,8 @@ def seed():
     for sku in skus:
         for wh in warehouses:
             WarehouseStock.objects.create(
-                warehouse=wh, sku=sku,
+                warehouse=wh,
+                sku=sku,
                 quantity=1000 + sku.id + wh.id,
                 reserved_quantity=sku.id % 50,
             )
@@ -35,5 +36,7 @@ def seed():
 
 if __name__ == "__main__":
     sale, skus, warehouses = seed()
-    print(f"seeded sale={sale.id}, {len(skus)} skus, {len(warehouses)} warehouses, "
-          f"{len(skus) * len(warehouses)} stock rows")
+    print(
+        f"seeded sale={sale.id}, {len(skus)} skus, {len(warehouses)} warehouses, "
+        f"{len(skus) * len(warehouses)} stock rows"
+    )

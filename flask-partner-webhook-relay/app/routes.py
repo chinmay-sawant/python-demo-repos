@@ -6,6 +6,7 @@ from app.services.ingest import IngestService
 
 bp = Blueprint("api", __name__, url_prefix="/api/v1")
 
+
 @bp.before_request
 def verify_auth():
     if request.endpoint and request.endpoint != "api.health":
@@ -13,16 +14,21 @@ def verify_auth():
         if api_key != current_app.config["INGEST_API_KEY"]:
             return jsonify({"error": "unauthorized"}), 401
 
+
 @bp.route("/health")
 def health():
     return jsonify({"status": "ok"})
+
 
 @bp.route("/webhooks", methods=["POST"])
 def ingest_webhook():
     if not request.is_json:
         return jsonify({"error": "content-type must be application/json"}), 415
 
-    if request.content_length and request.content_length > current_app.config["INGEST_MAX_PAYLOAD_SIZE"]:
+    if (
+        request.content_length
+        and request.content_length > current_app.config["INGEST_MAX_PAYLOAD_SIZE"]
+    ):
         return jsonify({"error": "payload too large"}), 413
 
     raw = request.get_data()

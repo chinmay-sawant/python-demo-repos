@@ -6,6 +6,7 @@ from app.services.ingest import IngestService
 
 router = APIRouter(prefix="/api/v1", tags=["ingest"])
 
+
 @router.post("/ingest", response_model=IngestResponse)
 async def ingest(
     body: IngestRequest,

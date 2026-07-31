@@ -12,6 +12,7 @@ from app.models import VendorExportJob, WindowAggregate
 
 logger = logging.getLogger(__name__)
 
+
 class VendorExportService:
     def __init__(self, session: AsyncSession, settings: Settings, client: httpx.AsyncClient):
         self.session = session
@@ -43,14 +44,16 @@ class VendorExportService:
 
             routes = []
             for agg in aggregates:
-                routes.append({
-                    "route_label": agg.route_label,
-                    "p50": agg.p50,
-                    "p95": agg.p95,
-                    "p99": agg.p99,
-                    "sample_count": agg.sample_count,
-                    "error_count": agg.error_count,
-                })
+                routes.append(
+                    {
+                        "route_label": agg.route_label,
+                        "p50": agg.p50_latency,
+                        "p95": agg.p95_latency,
+                        "p99": agg.p99_latency,
+                        "sample_count": agg.sample_count,
+                        "error_count": agg.error_count,
+                    }
+                )
 
             payload = {
                 "tenant_id": tenant_id,
@@ -83,7 +86,7 @@ class VendorExportService:
                         e,
                     )
                     if attempt < max_attempts - 1:
-                        delay = (2 ** attempt) + random.uniform(0, 1)  # noqa: S311
+                        delay = (2**attempt) + random.uniform(0, 1)  # noqa: S311  # nosec B311
                         await asyncio.sleep(delay)
 
             if last_exception is None:

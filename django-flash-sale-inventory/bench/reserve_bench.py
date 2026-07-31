@@ -48,6 +48,7 @@ def main():
 
     reservation_ids = []
     for n_lines in (1, 5, 20):
+
         def reserve_n(n_lines=n_lines):
             items = [{"sku_code": f"SKU{i:03d}", "quantity": 1} for i in range(1, n_lines + 1)]
             r = svc.reserve(sale_event=sale, user_id=f"user-{time.time_ns()}", items=items)

@@ -16,12 +16,14 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 class Base(DeclarativeBase):
     pass
 
+
 class Tenant(Base):
     __tablename__ = "tenants"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
 
 class IngestBatch(Base):
     __tablename__ = "ingest_batches"
@@ -33,6 +35,7 @@ class IngestBatch(Base):
     received_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
 
 class MetricSample(Base):
     __tablename__ = "metric_samples"
@@ -52,6 +55,7 @@ class MetricSample(Base):
         Index("ix_metric_samples_created_at", "created_at"),
     )
 
+
 class WindowAggregate(Base):
     __tablename__ = "window_aggregates"
 
@@ -65,6 +69,7 @@ class WindowAggregate(Base):
     p95_latency: Mapped[float] = mapped_column(Float)
     p99_latency: Mapped[float] = mapped_column(Float)
     error_count: Mapped[int] = mapped_column(Integer)
+
 
 class VendorExportJob(Base):
     __tablename__ = "vendor_export_jobs"

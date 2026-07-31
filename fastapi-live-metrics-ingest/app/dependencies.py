@@ -1,3 +1,4 @@
+from collections.abc import AsyncGenerator
 
 from fastapi import Depends, Header, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,10 +9,12 @@ from app.config import Settings
 async def get_settings(request: Request) -> Settings:
     return request.app.state.settings
 
-async def get_session(request: Request) -> AsyncSession:
+
+async def get_session(request: Request) -> AsyncGenerator[AsyncSession, None]:
     session_factory = request.app.state.session_factory
     async with session_factory() as session:
         yield session
+
 
 async def verify_tenant(
     x_tenant_id: int | None = Header(None, alias="X-Tenant-Id"),

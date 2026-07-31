@@ -1,16 +1,17 @@
 import argparse
 import os
 import resource
+import tempfile
 import time
 from datetime import UTC, datetime, timedelta
 
-os.environ.setdefault("DATABASE_URL", "sqlite:////tmp/opencode/bench_maintenance.db")
+DB_PATH = os.path.join(tempfile.mkdtemp(prefix="bench_maintenance_"), "bench_maintenance.db")
+os.environ.setdefault("DATABASE_URL", f"sqlite:///{DB_PATH}")
 
 from app import create_app
 from app.database import db
 from app.models import DeliveryAttempt, DeliveryOutbox, InboundEvent, Partner, PartnerEndpoint
 
-DB_PATH = "/tmp/opencode/bench_maintenance.db"
 N_ROWS = 100_000
 CHUNK = 5_000
 
@@ -40,29 +41,38 @@ def seed_purge_data(app):
         db.session.flush()
         for start in range(0, N_ROWS, CHUNK):
             size = min(CHUNK, N_ROWS - start)
-            db.session.execute(db.insert(DeliveryOutbox), [
-                {
-                    "inbound_event_id": event.id,
-                    "partner_endpoint_id": endpoint.id,
-                    "status": "DELIVERED",
-                    "attempt_count": 1,
-                    "created_at": old,
-                }
-                for _ in range(size)
-            ])
-            db.session.execute(db.insert(DeliveryAttempt), [
-                {
-                    "delivery_outbox_id": start + i + 1,
-                    "attempt_number": 1,
-                    "status_code": 200,
-                    "attempted_at": old,
-                }
-                for i in range(size)
-            ])
-        db.session.execute(db.insert(InboundEvent), [
-            {"event_type": "order.created", "payload": "{}", "received_at": old}
-            for _ in range(N_ROWS)
-        ])
+            db.session.execute(
+                db.insert(DeliveryOutbox),
+                [
+                    {
+                        "inbound_event_id": event.id,
+                        "partner_endpoint_id": endpoint.id,
+                        "status": "DELIVERED",
+                        "attempt_count": 1,
+                        "created_at": old,
+                    }
+                    for _ in range(size)
+                ],
+            )
+            db.session.execute(
+                db.insert(DeliveryAttempt),
+                [
+                    {
+                        "delivery_outbox_id": start + i + 1,
+                        "attempt_number": 1,
+                        "status_code": 200,
+                        "attempted_at": old,
+                    }
+                    for i in range(size)
+                ],
+            )
+        db.session.execute(
+            db.insert(InboundEvent),
+            [
+                {"event_type": "order.created", "payload": "{}", "received_at": old}
+                for _ in range(N_ROWS)
+            ],
+        )
         db.session.commit()
     print(f"seeded {N_ROWS} outbox rows + {N_ROWS} attempts + {N_ROWS + 1} events (60d old)")
 
@@ -85,16 +95,19 @@ def seed_redrive_data(app):
         db.session.flush()
         for start in range(0, N_ROWS, CHUNK):
             size = min(CHUNK, N_ROWS - start)
-            db.session.execute(db.insert(DeliveryOutbox), [
-                {
-                    "inbound_event_id": event.id,
-                    "partner_endpoint_id": endpoint.id,
-                    "status": "DEAD_LETTER",
-                    "attempt_count": 5,
-                    "last_error": "HTTP 500",
-                }
-                for _ in range(size)
-            ])
+            db.session.execute(
+                db.insert(DeliveryOutbox),
+                [
+                    {
+                        "inbound_event_id": event.id,
+                        "partner_endpoint_id": endpoint.id,
+                        "status": "DEAD_LETTER",
+                        "attempt_count": 5,
+                        "last_error": "HTTP 500",
+                    }
+                    for _ in range(size)
+                ],
+            )
         db.session.commit()
     print(f"seeded {N_ROWS} DEAD_LETTER outbox rows")
 
@@ -115,7 +128,10 @@ def bench_purge():
             "outbox": DeliveryOutbox.query.count(),
             "attempts": DeliveryAttempt.query.count(),
         }
-    print(f"purge: {elapsed:.2f}s, exit={result.exit_code}, rss={rss_mb():.0f} MB, remaining={remaining}")
+    print(
+        f"purge: {elapsed:.2f}s, exit={result.exit_code}, rss={rss_mb():.0f} MB, "
+        f"remaining={remaining}"
+    )
     print(result.output.strip())
 
 
@@ -128,8 +144,10 @@ def bench_redrive():
     with app.app_context():
         dead = DeliveryOutbox.query.filter_by(status="DEAD_LETTER").count()
         pending = DeliveryOutbox.query.filter_by(status="PENDING").count()
-    print(f"redrive: {elapsed:.2f}s, exit={result.exit_code}, rss={rss_mb():.0f} MB, "
-          f"dead_letter={dead}, pending={pending}")
+    print(
+        f"redrive: {elapsed:.2f}s, exit={result.exit_code}, rss={rss_mb():.0f} MB, "
+        f"dead_letter={dead}, pending={pending}"
+    )
     print(result.output.strip())
 
 

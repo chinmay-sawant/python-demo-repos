@@ -12,10 +12,11 @@ from app.services.vendor_export import VendorExportService
 
 logger = logging.getLogger(__name__)
 
+
 class BackgroundTaskManager:
     def __init__(self, settings: Settings):
         self.settings = settings
-        self._tasks = []
+        self._tasks: list[asyncio.Task] = []
         self._shutdown_event = asyncio.Event()
 
     async def start(self):
@@ -38,11 +39,13 @@ class BackgroundTaskManager:
                 cutoff = datetime.now(UTC) - timedelta(hours=self.settings.retention_hours)
                 async with session_factory() as session:
                     while True:
-                        stmt = delete(MetricSample).where(MetricSample.id.in_(
-                            select(MetricSample.id)
-                            .where(MetricSample.created_at < cutoff)
-                            .limit(500)
-                        ))
+                        stmt = delete(MetricSample).where(
+                            MetricSample.id.in_(
+                                select(MetricSample.id)
+                                .where(MetricSample.created_at < cutoff)
+                                .limit(500)
+                            )
+                        )
                         result = await session.execute(stmt)
                         await session.commit()
                         if result.rowcount == 0:

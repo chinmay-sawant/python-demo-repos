@@ -38,11 +38,13 @@ def seed_outbox(app, n, round_id):
             )
             db.session.add(event)
             db.session.flush()
-            db.session.add(DeliveryOutbox(
-                inbound_event_id=event.id,
-                partner_endpoint_id=endpoint.id,
-                status="PENDING",
-            ))
+            db.session.add(
+                DeliveryOutbox(
+                    inbound_event_id=event.id,
+                    partner_endpoint_id=endpoint.id,
+                    status="PENDING",
+                )
+            )
         db.session.commit()
         print(f"seeded {n} outbox items -> {endpoint.url}")
 
@@ -62,12 +64,14 @@ def main():
     for round_id in range(N_REPEATS):
         seed_outbox(app, N_ITEMS, round_id)
         t0 = time.perf_counter()
-        delivered = run_once()
+        run_once()
         times.append(time.perf_counter() - t0)
 
     print("== Flask delivery worker benchmark (mock partner 200ms) ==")
-    print(f"run_once({N_ITEMS} items, concurrent) : {statistics.median(times):.2f}s median  "
-          f"(per-item ≈ {statistics.median(times) / N_ITEMS * 1000:.0f} ms; partner latency 200ms)")
+    print(
+        f"run_once({N_ITEMS} items, concurrent) : {statistics.median(times):.2f}s median  "
+        f"(per-item ≈ {statistics.median(times) / N_ITEMS * 1000:.0f} ms; partner latency 200ms)"
+    )
 
     with app.app_context():
         item = DeliveryOutbox.query.filter_by(status="PENDING").first()

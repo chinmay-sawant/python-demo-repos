@@ -20,7 +20,6 @@ from inventory.models import (
 
 
 class ReservationService:
-
     @transaction.atomic
     def reserve(self, sale_event, user_id, items, idempotency_key=None, warehouse_code=None):
         if sale_event.status != SaleEvent.Status.ACTIVE:
@@ -34,35 +33,36 @@ class ReservationService:
                 return existing
 
         skus = {
-            s.sku_code: s
-            for s in Sku.objects.filter(sku_code__in=[i['sku_code'] for i in items])
+            s.sku_code: s for s in Sku.objects.filter(sku_code__in=[i["sku_code"] for i in items])
         }
         warehouse = Warehouse.objects.get(code=warehouse_code) if warehouse_code else None
 
         item_details = []
         for item in items:
-            sku = skus[item['sku_code']]
+            sku = skus[item["sku_code"]]
             stock_qs = (
                 WarehouseStock.objects.filter(warehouse=warehouse, sku=sku)
                 if warehouse
                 else WarehouseStock.objects.filter(sku=sku)
-                .select_related('warehouse')
-                .order_by('-quantity')
+                .select_related("warehouse")
+                .order_by("-quantity")
             )
 
             stock = stock_qs.select_for_update().first()
-            if not stock or stock.available_quantity() < item['quantity']:
+            if not stock or stock.available_quantity() < item["quantity"]:
                 raise InsufficientStockError(
                     f"Insufficient stock for SKU {item['sku_code']}: "
                     f"requested {item['quantity']}, available "
                     f"{stock.available_quantity() if stock else 0}"
                 )
 
-            item_details.append({
-                'sku': sku,
-                'stock': stock,
-                'quantity': item['quantity'],
-            })
+            item_details.append(
+                {
+                    "sku": sku,
+                    "stock": stock,
+                    "quantity": item["quantity"],
+                }
+            )
 
         if idempotency_key:
             try:
@@ -85,28 +85,32 @@ class ReservationService:
                 expires_at=timezone.now() + timedelta(minutes=30),
             )
 
-        ReservationLine.objects.bulk_create([
-            ReservationLine(
-                reservation=reservation,
-                sku=d['sku'],
-                warehouse=d['stock'].warehouse,
-                quantity=d['quantity'],
-            )
-            for d in item_details
-        ])
+        ReservationLine.objects.bulk_create(
+            [
+                ReservationLine(
+                    reservation=reservation,
+                    sku=d["sku"],
+                    warehouse=d["stock"].warehouse,
+                    quantity=d["quantity"],
+                )
+                for d in item_details
+            ]
+        )
         for d in item_details:
-            WarehouseStock.objects.filter(pk=d['stock'].pk).update(
-                reserved_quantity=models.F('reserved_quantity') + d['quantity']
+            WarehouseStock.objects.filter(pk=d["stock"].pk).update(
+                reserved_quantity=models.F("reserved_quantity") + d["quantity"]
             )
-        StockLedger.objects.bulk_create([
-            StockLedger(
-                warehouse_stock=d['stock'],
-                delta=-d['quantity'],
-                reason=StockLedger.Reason.RESERVE,
-                reservation=reservation,
-            )
-            for d in item_details
-        ])
+        StockLedger.objects.bulk_create(
+            [
+                StockLedger(
+                    warehouse_stock=d["stock"],
+                    delta=-d["quantity"],
+                    reason=StockLedger.Reason.RESERVE,
+                    reservation=reservation,
+                )
+                for d in item_details
+            ]
+        )
 
         return reservation
 
@@ -134,8 +138,8 @@ class ReservationService:
             WarehouseStock.objects.filter(
                 warehouse_id=line.warehouse_id, sku_id=line.sku_id
             ).update(
-                reserved_quantity=models.F('reserved_quantity') - line.quantity,
-                quantity=models.F('quantity') - line.quantity,
+                reserved_quantity=models.F("reserved_quantity") - line.quantity,
+                quantity=models.F("quantity") - line.quantity,
             )
             StockLedger.objects.create(
                 warehouse_stock=stocks[(line.warehouse_id, line.sku_id)],
@@ -165,7 +169,7 @@ class ReservationService:
             WarehouseStock.objects.filter(
                 warehouse_id=line.warehouse_id, sku_id=line.sku_id
             ).update(
-                reserved_quantity=models.F('reserved_quantity') - line.quantity,
+                reserved_quantity=models.F("reserved_quantity") - line.quantity,
             )
             StockLedger.objects.create(
                 warehouse_stock=stocks[(line.warehouse_id, line.sku_id)],
@@ -202,7 +206,7 @@ class ReservationService:
                         WarehouseStock.objects.filter(
                             warehouse_id=line.warehouse_id, sku_id=line.sku_id
                         ).update(
-                            reserved_quantity=models.F('reserved_quantity') - line.quantity,
+                            reserved_quantity=models.F("reserved_quantity") - line.quantity,
                         )
                         StockLedger.objects.create(
                             warehouse_stock=stocks[(line.warehouse_id, line.sku_id)],

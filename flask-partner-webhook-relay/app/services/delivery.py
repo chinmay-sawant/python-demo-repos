@@ -15,6 +15,7 @@ from app.models import DeliveryAttempt, DeliveryOutbox, PartnerEndpoint
 
 logger = logging.getLogger(__name__)
 
+
 class DeliveryWorker:
     def __init__(self, app):
         self.app = app
@@ -49,8 +50,7 @@ class DeliveryWorker:
     def claim_work(self, batch_size: int = 50) -> list:
         now = datetime.now(UTC)
         items = (
-            DeliveryOutbox.query
-            .options(
+            DeliveryOutbox.query.options(
                 joinedload(DeliveryOutbox.partner_endpoint).joinedload(PartnerEndpoint.partner),
                 joinedload(DeliveryOutbox.inbound_event),
             )
@@ -96,7 +96,10 @@ class DeliveryWorker:
                         "X-Signature-256": signature,
                         "X-Idempotency-Key": str(inbound.id),
                     },
-                    timeout=(self.app.config["DELIVERY_TIMEOUT_CONNECT"], self.app.config["DELIVERY_TIMEOUT_READ"]),
+                    timeout=(
+                        self.app.config["DELIVERY_TIMEOUT_CONNECT"],
+                        self.app.config["DELIVERY_TIMEOUT_READ"],
+                    ),
                 )
                 return {
                     "status_code": resp.status_code,
@@ -143,7 +146,9 @@ class DeliveryWorker:
             outbox.status = "DELIVERED"
             outbox.attempt_count = result["attempt_number"]
         else:
-            self._handle_failure(outbox, attempt, result["error"] or f"HTTP {result['status_code']}")
+            self._handle_failure(
+                outbox, attempt, result["error"] or f"HTTP {result['status_code']}"
+            )
         db.session.add(attempt)
         return attempt
 
@@ -164,7 +169,9 @@ class DeliveryWorker:
         else:
             outbox.status = "FAILED"
             base_delay = self.app.config["DELIVERY_RETRY_BASE_DELAY"]
-            delay = base_delay * (2 ** (outbox.attempt_count - 1)) + random.uniform(0, base_delay * 0.1)
+            delay = base_delay * (2 ** (outbox.attempt_count - 1)) + random.uniform(  # nosec B311
+                0, base_delay * 0.1
+            )
             outbox.next_attempt_at = datetime.now(UTC) + timedelta(seconds=delay)
 
     def run_once(self) -> int:
@@ -175,7 +182,7 @@ class DeliveryWorker:
             max_workers = self.app.config["DELIVERY_MAX_CONCURRENCY"]
             with ThreadPoolExecutor(max_workers=max_workers) as pool:
                 results = list(pool.map(self._send, items))
-            for outbox, result in zip(items, results):
+            for outbox, result in zip(items, results, strict=True):
                 self._apply(outbox, result)
             db.session.commit()
             return len(items)

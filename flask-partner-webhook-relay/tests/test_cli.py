@@ -12,7 +12,7 @@ def seed_purge_rows(app):
     recent = datetime.now(UTC)
     with app.app_context():
         endpoint = PartnerEndpoint.query.first()
-        for i in range(3):
+        for _i in range(3):
             event = InboundEvent(event_type="old", payload="{}", received_at=old)
             db.session.add(event)
             db.session.flush()
@@ -24,11 +24,13 @@ def seed_purge_rows(app):
             )
             db.session.add(outbox)
             db.session.flush()
-            db.session.add(DeliveryAttempt(
-                delivery_outbox_id=outbox.id,
-                attempt_number=1,
-                attempted_at=old,
-            ))
+            db.session.add(
+                DeliveryAttempt(
+                    delivery_outbox_id=outbox.id,
+                    attempt_number=1,
+                    attempted_at=old,
+                )
+            )
         event = InboundEvent(event_type="recent", payload="{}", received_at=recent)
         db.session.add(event)
         db.session.flush()
@@ -40,11 +42,13 @@ def seed_purge_rows(app):
         )
         db.session.add(outbox)
         db.session.flush()
-        db.session.add(DeliveryAttempt(
-            delivery_outbox_id=outbox.id,
-            attempt_number=1,
-            attempted_at=recent,
-        ))
+        db.session.add(
+            DeliveryAttempt(
+                delivery_outbox_id=outbox.id,
+                attempt_number=1,
+                attempted_at=recent,
+            )
+        )
         db.session.commit()
 
 
@@ -56,13 +60,15 @@ def seed_dead_letter_rows(app, n, *, keep_pending=1):
             db.session.add(event)
             db.session.flush()
             status = "DEAD_LETTER" if i < n else "PENDING"
-            db.session.add(DeliveryOutbox(
-                inbound_event_id=event.id,
-                partner_endpoint_id=endpoint.id,
-                status=status,
-                last_error="boom" if status == "DEAD_LETTER" else None,
-                attempt_count=5 if status == "DEAD_LETTER" else 0,
-            ))
+            db.session.add(
+                DeliveryOutbox(
+                    inbound_event_id=event.id,
+                    partner_endpoint_id=endpoint.id,
+                    status=status,
+                    last_error="boom" if status == "DEAD_LETTER" else None,
+                    attempt_count=5 if status == "DEAD_LETTER" else 0,
+                )
+            )
         db.session.commit()
 
 
@@ -83,12 +89,12 @@ class TestPurge:
         seed_purge_rows(app)
         with app.app_context():
             with db.engine.connect() as conn:
-                for table, column in [
-                    ("inbound_events", "received_at"),
-                    ("delivery_attempts", "attempted_at"),
+                for sql in [
+                    "EXPLAIN QUERY PLAN SELECT id FROM inbound_events WHERE received_at < ?",
+                    "EXPLAIN QUERY PLAN SELECT id FROM delivery_attempts WHERE attempted_at < ?",
                 ]:
                     plan = conn.exec_driver_sql(
-                        f"EXPLAIN QUERY PLAN SELECT id FROM {table} WHERE {column} < ?",
+                        sql,
                         (datetime.now(UTC),),
                     ).fetchall()
                     assert "INDEX" in " ".join(row[3] for row in plan), plan

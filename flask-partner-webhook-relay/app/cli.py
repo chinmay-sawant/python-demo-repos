@@ -8,6 +8,7 @@ from app.services.delivery import DeliveryWorker
 
 logger = logging.getLogger(__name__)
 
+
 def _worker_loop(worker, poll_interval):
     while True:
         delivered = worker.run_once()
@@ -16,16 +17,21 @@ def _worker_loop(worker, poll_interval):
             continue
         time.sleep(poll_interval)
 
+
 def _purge_chunks(base_query, order_col, chunk_size=1000):
     total = 0
     while True:
-        ids = [row[0] for row in base_query.with_entities(order_col).order_by(order_col).limit(chunk_size)]
+        ids = [
+            row[0]
+            for row in base_query.with_entities(order_col).order_by(order_col).limit(chunk_size)
+        ]
         if not ids:
             break
         base_query.filter(order_col.in_(ids)).delete(synchronize_session=False)
         db.session.commit()
         total += len(ids)
     return total
+
 
 def register_commands(app):
     @app.cli.command("run-worker")
@@ -70,12 +76,14 @@ def register_commands(app):
     @app.cli.command("redrive-dead-letter")
     def redrive_dead_letter():
         """Reset DEAD_LETTER items to PENDING for retry."""
-        count = DeliveryOutbox.query.filter_by(status="DEAD_LETTER").update({
-            "status": "PENDING",
-            "next_attempt_at": datetime.now(UTC),
-            "attempt_count": 0,
-            "last_error": None,
-        })
+        count = DeliveryOutbox.query.filter_by(status="DEAD_LETTER").update(
+            {
+                "status": "PENDING",
+                "next_attempt_at": datetime.now(UTC),
+                "attempt_count": 0,
+                "last_error": None,
+            }
+        )
         db.session.commit()
         print(f"Redrove {count} items")
 

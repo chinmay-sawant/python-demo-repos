@@ -6,7 +6,7 @@ from app.models import DeliveryOutbox, InboundEvent, PartnerEndpoint
 
 class IngestService:
     @staticmethod
-    def process_event(*, event_type: str, payload: str, idempotency_key: str = None) -> dict:
+    def process_event(*, event_type: str, payload: str, idempotency_key: str | None = None) -> dict:
         if idempotency_key:
             existing = InboundEvent.query.filter_by(idempotency_key=idempotency_key).first()
             if existing:

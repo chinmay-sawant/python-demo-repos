@@ -18,7 +18,7 @@ async def test_health_endpoint(client):
 @pytest.mark.asyncio
 async def test_ingest_success(client, mock_session):
     mock_response = IngestResponse(accepted=2, batch_id=1)
-    with patch('app.routers.ingest.IngestService') as mock_class:
+    with patch("app.routers.ingest.IngestService") as mock_class:
         mock_instance = AsyncMock()
         mock_class.return_value = mock_instance
         mock_instance.process_batch = AsyncMock(return_value=mock_response)
@@ -92,7 +92,7 @@ async def test_percentiles_endpoint(client, mock_session):
         p99=950.0,
         total_samples=500,
     )
-    with patch('app.routers.dashboard.AggregationService') as mock_class:
+    with patch("app.routers.dashboard.AggregationService") as mock_class:
         mock_instance = AsyncMock()
         mock_class.return_value = mock_instance
         mock_instance.get_percentiles = AsyncMock(return_value=mock_response.model_dump())
@@ -121,7 +121,7 @@ async def test_top_routes_endpoint(client, mock_session):
         {"route_label": "/api/users", "avg_latency_ms": 250.0, "count": 100},
         {"route_label": "/api/orders", "avg_latency_ms": 150.0, "count": 200},
     ]
-    with patch('app.routers.dashboard.AggregationService') as mock_class:
+    with patch("app.routers.dashboard.AggregationService") as mock_class:
         mock_instance = AsyncMock()
         mock_class.return_value = mock_instance
         mock_instance.get_top_routes = AsyncMock(return_value=mock_rows)
@@ -139,7 +139,7 @@ async def test_top_routes_endpoint(client, mock_session):
 @pytest.mark.asyncio
 async def test_error_rates_endpoint(client, mock_session):
     mock_data = {"error_count": 5, "total_count": 100, "error_rate": 0.05}
-    with patch('app.routers.dashboard.AggregationService') as mock_class:
+    with patch("app.routers.dashboard.AggregationService") as mock_class:
         mock_instance = AsyncMock()
         mock_class.return_value = mock_instance
         mock_instance.get_error_rates = AsyncMock(return_value=mock_data)
