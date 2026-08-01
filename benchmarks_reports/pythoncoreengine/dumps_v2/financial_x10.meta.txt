@@ -1,0 +1,5 @@
+stem=financial_x10
+profile_wall_s=0.146673
+heap_run_wall_s=0.586259
+peak_mb=1.7681
+current_mb=1.2498

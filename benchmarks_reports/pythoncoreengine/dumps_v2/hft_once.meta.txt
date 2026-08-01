@@ -1,0 +1,5 @@
+stem=hft_once
+profile_wall_s=1.246637
+heap_run_wall_s=5.053688
+peak_mb=19.5069
+current_mb=12.6259

@@ -1,0 +1,5 @@
+stem=zerodha_mix_100
+profile_wall_s=8.630260
+heap_run_wall_s=40.212920
+peak_mb=36.4345
+current_mb=25.0777

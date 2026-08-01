@@ -1,0 +1,5 @@
+stem=financial_once_nocomply
+profile_wall_s=0.009477
+heap_run_wall_s=0.032156
+peak_mb=0.4430
+current_mb=0.2506

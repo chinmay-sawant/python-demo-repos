@@ -1,0 +1,20 @@
+# module self-time rollup (tottime sum)
+# wall=0.014069
+
+  0.003363s  max_cum=  0.0030  ncalls=    6787  write.py
+  0.001873s  max_cum=  0.0021  ncalls=    4467  content.py
+  0.001333s  max_cum=  0.0047  ncalls=    1056  layout.py
+  0.000991s  max_cum=  0.0007  ncalls=    2672  font.py
+  0.000629s  max_cum=  0.0083  ncalls=     790  doc.py
+  0.000523s  max_cum=  0.0004  ncalls=     916  structure.py
+  0.000348s  max_cum=  0.0140  ncalls=     293  render.py
+  0.000104s  max_cum=  0.0001  ncalls=     232  color.py
+  0.000071s  max_cum=  0.0001  ncalls=      60  _local.py
+  0.000031s  max_cum=  0.0001  ncalls=      21  meta.py
+  0.000018s  max_cum=  0.0000  ncalls=      15  page.py
+  0.000013s  max_cum=  0.0000  ncalls=      12  pdfa.py
+  0.000012s  max_cum=  0.0000  ncalls=       4  uuid.py
+  0.000008s  max_cum=  0.0000  ncalls=       6  image.py
+  0.000008s  max_cum=  0.0001  ncalls=       6  _abc.py
+  0.000006s  max_cum=  0.0000  ncalls=       1  model.py
+  0.000006s  max_cum=  0.0001  ncalls=       4  base64.py
