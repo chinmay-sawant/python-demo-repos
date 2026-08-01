@@ -53,10 +53,11 @@ def _s15fixed16(data: bytes, offset: int) -> float:
 
 
 def _curve_values(profile: bytes, sig: bytes) -> List[int]:
-    """The 8-bit entries of a curveType tag."""
+    """The 8-bit entries of a curveType tag (u8Fixed8, 2 bytes each)."""
     offset, size = _tags(profile)[sig]
     count = struct.unpack(">I", profile[offset + 8 : offset + 12])[0]
-    return list(profile[offset + 12 : offset + 12 + count])
+    raw = struct.unpack(">%dH" % count, profile[offset + 12 : offset + 12 + 2 * count])
+    return [value >> 8 for value in raw]
 
 
 class TestICCHeader(unittest.TestCase):

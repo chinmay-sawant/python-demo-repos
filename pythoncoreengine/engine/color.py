@@ -124,12 +124,19 @@ def _xyz_tag(x: int, y: int, z: int) -> bytes:
 
 
 def _curve_tag(values: Sequence[int]) -> bytes:
-    """A curveType tag: a count plus one 8-bit entry per table value."""
+    """A curveType tag: count plus one ``u8Fixed8Number`` per entry.
+
+    Per ICC.1:2001-04 9.2.8 every curveType entry is a two-byte
+    ``u8Fixed8Number`` (value << 8); writing single bytes -- as earlier
+    drafts of the spec suggested -- makes strict parsers (Adobe Preflight)
+    reject the whole profile.  A 256-entry LUT therefore occupies
+    12 + 512 = 524 bytes.
+    """
     return (
         b"curv"
         + struct.pack(">I", 0)
         + struct.pack(">I", len(values))
-        + bytes(values)
+        + struct.pack(">%dH" % len(values), *(value << 8 for value in values))
     )
 
 
