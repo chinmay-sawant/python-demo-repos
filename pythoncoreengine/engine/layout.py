@@ -43,6 +43,12 @@ __all__ = [
 DEFAULT_MARGIN = 72.0
 _LINE_HEIGHT_FACTOR = 1.2
 
+
+def _is_dark(color: RGB) -> bool:
+    """Perceptual luminance below 50%: white text reads best over it."""
+    r, g, b = color
+    return 0.299 * r + 0.587 * g + 0.114 * b < 0.5
+
 # Helvetica glyph widths in 1/1000 em (Adobe AFM-style values), indexed by
 # byte value 0..255.  Only the printable ASCII range has real metrics; every
 # other byte falls back to the average width 556.
@@ -568,7 +574,7 @@ class TableLayout:
         header_size: float = 10.0,
         text_color: Optional[RGB] = None,
         header_color: Optional[RGB] = None,
-        header_background: Optional[RGB] = (0.9, 0.9, 0.9),
+        header_background: Optional[RGB] = (0.13, 0.26, 0.38),
         cell_padding: float = 4.0,
         line_width: float = 0.5,
         line_color: RGB = (0.4, 0.4, 0.4),
@@ -656,9 +662,19 @@ class TableLayout:
             flow.y += height
             self._draw_grid(flow, flow.y - height, flow.y, column_x)
 
-        def draw_row(row: Sequence[str], row_index: int) -> None:
+        prev_pages = flow.page_count
+        if self.header is not None:
+            draw_header()
+            prev_pages = flow.page_count
+        for row_index, row in enumerate(self.rows):
+            # Break pages *before* drawing the row, then redraw the header at
+            # the top of the fresh page (checking the page count before the
+            # break would draw the header below the first row of the page).
             height = self._row_height(row, self.size)
             flow.ensure_space(height)
+            if self.header is not None and flow.page_count != prev_pages:
+                prev_pages = flow.page_count
+                draw_header()
             row_elem = (
                 manager.create_element("TR", parent=table_elem, page=flow.page_index)
                 if manager is not None
@@ -667,17 +683,6 @@ class TableLayout:
             self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
             flow.y += height
             self._draw_grid(flow, flow.y - height, flow.y, column_x)
-
-        prev_pages = flow.page_count
-        if self.header is not None:
-            draw_header()
-            prev_pages = flow.page_count
-        for row_index, row in enumerate(self.rows):
-            if flow.page_count != prev_pages:
-                prev_pages = flow.page_count
-                if self.header is not None:
-                    draw_header()
-            draw_row(row, row_index)
 
     def _draw_row(
         self,
@@ -703,13 +708,23 @@ class TableLayout:
         """
         is_header = cells is self.header
         font = self.header_font if is_header else self.font
-        text_color = self.header_color if is_header else self.text_color
         if is_header:
             background = self.header_background
         elif self.row_background is not None:
             background = self.row_background(row_index)
         else:
             background = None
+        # Cell text must always get an explicit fill colour: without one the
+        # text inherits whatever fill colour is current in the graphics
+        # state -- typically the band's background fill -- leaving the text
+        # invisible against the band (and every later row dimmed, since the
+        # fill colour persists until changed).  Headers over a dark band
+        # render white, everything else black.
+        text_color = self.header_color if is_header else self.text_color
+        if text_color is None:
+            text_color = (1.0, 1.0, 1.0) if (
+                background is not None and _is_dark(background)
+            ) else (0.0, 0.0, 0.0)
         leading = size * _LINE_HEIGHT_FACTOR
         height = self._row_height(cells, size)
 
@@ -727,8 +742,7 @@ class TableLayout:
             flow.stream.filled_rect(
                 flow.margins.left, flow.pdf_y(y_top + height), x1 - flow.margins.left, height
             )
-        if text_color is not None:
-            flow.stream.set_color_rgb(*text_color)
+        flow.stream.set_color_rgb(*text_color)
 
         tag = "TH" if is_header else "TD"
         for col, cell in enumerate(cells):

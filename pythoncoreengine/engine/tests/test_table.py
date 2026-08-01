@@ -77,8 +77,18 @@ class TestTableGrid(unittest.TestCase):
         flow = _table_flow()
         ops = flow.stream.render()
         self.assertIn(b"/F2", ops)  # header_font
-        self.assertIn(b"0.9 0.9 0.9 rg", ops)  # header background
+        self.assertIn(b"0.13 0.26 0.38 rg", ops)  # header background
         self.assertIn(b"re\nf", ops)
+
+    def test_header_text_never_inherits_band_fill(self) -> None:
+        # The header band fill must not leak into the header glyphs (text
+        # without an explicit colour would render in the band colour and be
+        # invisible), nor dim the body rows that follow.
+        flow = _table_flow()
+        ops = flow.stream.render()
+        # white header text over the dark band, black body text
+        self.assertIn(b"1 1 1 rg", ops)
+        self.assertIn(b"0 0 0 rg", ops)
 
     def test_body_rows_use_body_font(self) -> None:
         flow = _table_flow(font="F1")

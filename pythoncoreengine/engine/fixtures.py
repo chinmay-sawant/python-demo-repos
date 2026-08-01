@@ -333,8 +333,26 @@ def _phase5_table_multipage_document() -> bytes:
                 str(100 + row),
             ]
         )
+    flow.text(
+        "Inventory — Q3 2026",
+        size=18,
+        color=(0.1, 0.1, 0.1),
+    )
+    flow.text(
+        "Warehouse stock levels by product line",
+        size=11,
+        color=(0.35, 0.35, 0.35),
+    )
     flow.table(
-        TableLayout(col_widths=[60, 90, 90, 90, 60], header=header, rows=rows, size=9)
+        TableLayout(
+            col_widths=[80, 120, 100, 120, 79],
+            header=header,
+            rows=rows,
+            size=9,
+            text_color=(0.12, 0.14, 0.16),
+            row_background=lambda i: (0.97, 0.97, 0.97) if i % 2 else None,
+            grid=True,
+        )
     )
     return builder.render()
 

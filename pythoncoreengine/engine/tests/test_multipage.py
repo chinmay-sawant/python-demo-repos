@@ -83,7 +83,10 @@ class TestMultiPageDocument(unittest.TestCase):
             body = object_bytes(self.data, self.offsets[page_id])
             for ref in stream_refs_in(self.data, self.offsets, body):
                 raw = inflate_stream(self.data, self.offsets[ref])
-                self.assertTrue(raw.startswith(b"BT") or raw.startswith(b"q"))
+                # Continuation pages legitimately open with the redrawn
+                # header band (fill + stroke colour operators and rects);
+                # every page must still draw at least one text block.
+                self.assertIn(b"BT", raw, "page stream has no text")
                 self.assertGreater(len(raw), 10)
 
     def test_page_resources_reference_fonts(self) -> None:
@@ -100,6 +103,29 @@ class TestMultiPageDocument(unittest.TestCase):
 
     def test_startxref_still_points_at_xref(self) -> None:
         self.assertEqual(startxref_offset(self.data), self.data.index(b"xref\n"))
+
+    def test_header_redrawn_at_top_of_continuation_pages(self) -> None:
+        # Every page after the first must open with the redrawn header band
+        # (fill colour + rect + header text) and NOT with a body row.
+        page_ids = all_objects_with(self.data, self.offsets, b"/Type /Page /")
+        first = True
+        for page_id in page_ids:
+            body = object_bytes(self.data, self.offsets[page_id])
+            for ref in stream_refs_in(self.data, self.offsets, body):
+                raw = inflate_stream(self.data, self.offsets[ref])
+                if first:
+                    first = False
+                    continue  # page 1 opens with the intro paragraph
+                self.assertIn(b"0.13 0.26 0.38 rg", raw,
+                              "continuation page missing header band")
+                self.assertIn(b"re\nf", raw)
+                header_y = re.search(rb"^([0-9.]+) ([0-9.]+) ([0-9.]+) ([0-9.]+) re\nf\n",
+                                     raw, re.M)
+                self.assertIsNotNone(header_y)
+                # The band's top edge (y + height) sits at the very top of
+                # the page content box (A4 841.89 - 48 top margin).
+                self.assertGreater(float(header_y.group(2))
+                                   + float(header_y.group(4)), 780.0)
 
     def test_all_objects_contiguous(self) -> None:
         ids = all_object_ids(self.offsets)
