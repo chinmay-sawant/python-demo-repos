@@ -15,7 +15,7 @@ Complete field guide for the **full JSON template** shape that gocorepdfengine a
 |-------|--------|--------|
 | This document (full template) | **Target contract** | Spec for `config` / `title` / `elements` / `footer` / … |
 | Zerodha domain JSON (`sampledata/zerodha/*.json`) | **In use now** | Domain model (`client`, `trades`, …) mapped via `engine/model` + `engine/render` |
-| Generic `PDFTemplate` JSON loader | **Not yet** | Future: load this format directly into layout |
+| Generic `PDFTemplate` JSON loader | **In use now** | `engine.model.load_template` + `engine.render.build_template_document` (financial bench) |
 | `/api/v1/generate/...` HTTP | **Out of scope** | Engine library only |
 
 Zerodha bench does **not** use the full `config`/`elements` tree today; it maps domain JSON → layout tables. The full format below is the roadmap for a general-purpose template renderer.

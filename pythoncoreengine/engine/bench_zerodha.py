@@ -1,11 +1,20 @@
 """Zerodha-style benchmark harness (phase 8) -- stdlib only.
 
 Runs the 80/15/5 retail/active/HFT workload end to end on the pure-Python
-engine: sampledata JSON -> model (LoadJSON + ExpandTrades) -> render
+engine: sampledata JSON -> model (load_json + expand_trades) -> render
 (build_document with the Zerodha theme) -> PDF bytes, in compliant
-(PDF/A-4 + PDF/UA-2, default) or plain PDF 2.0 (``--nocomply``) mode, and
-with the model cache on (default) or off (``BENCH_CACHE=0`` /
-``--uncached``).
+(PDF/A-4 + PDF/UA-2, default) or plain PDF 2.0 (``--nocomply``) mode.
+
+Cache contract (**model/template only** -- PDF is **never** cached):
+
+* ``BENCH_CACHE=1`` / ``--cached`` (default): expand trades once and reuse
+  the three :class:`~engine.model.ContractNote` models across iterations.
+* ``BENCH_CACHE=0`` / ``--uncached``: re-expand / rebuild the model every
+  job (bytes identical; measures model-rebuild cost).
+
+Every job still generates a full PDF. At the end (unless
+``BENCH_SKIP_WRITE=1``) one warm-up PDF is written per tier under
+``sampledata/zerodha/`` (``zerodha_<tier>[_nocomply]_output.pdf``).
 
 Env contract (sampledata/zerodha/README.md):
 
@@ -38,6 +47,7 @@ import os
 import random
 import re
 import time
+import tracemalloc
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -121,7 +131,8 @@ def run_bench(
     Every job renders a full PDF.  In cached mode the expanded models are
     built once up front; in uncached mode each job re-expands with the
     same seed, so both modes produce byte-identical documents and the
-    cache dimension only measures model-rebuild cost.
+    cache dimension only measures model-rebuild cost.  PDF bytes are
+    never cached either way.
     """
     data_dir = Path(data_dir) if data_dir is not None else _DEFAULT_DATA_DIR
     base = _load_base(data_dir)
@@ -132,6 +143,7 @@ def run_bench(
         tier: {"jobs": 0.0, "time": 0.0} for tier in _TIERS
     }
     outputs: Dict[str, bytes] = {}
+    tracemalloc.start()
     started = time.perf_counter()
     for tier in jobs:
         if cached:
@@ -148,6 +160,9 @@ def run_bench(
         per_tier[tier]["jobs"] += 1.0
         outputs[tier] = data
     total_time = time.perf_counter() - started
+    _current, peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    peak_mb = peak / (1024.0 * 1024.0)
 
     tiers: Dict[str, Dict[str, Any]] = {}
     for tier in _TIERS:
@@ -158,13 +173,16 @@ def run_bench(
             "time": seconds,
             "ms_per_job": 1000.0 * seconds / count if count else 0.0,
         }
+    jobs_per_sec = iterations / total_time if total_time else 0.0
     return {
         "iterations": iterations,
         "seed": seed,
         "cache": cached,
         "compliant": compliant,
         "total_time": total_time,
-        "jobs_per_sec": iterations / total_time if total_time else 0.0,
+        "jobs_per_sec": jobs_per_sec,
+        "ms_per_job": 1000.0 * total_time / iterations if iterations else 0.0,
+        "peak_mb": peak_mb,
         "tiers": tiers,
         "output_bytes": {tier: len(data) for tier, data in outputs.items()},
         "pages": {tier: _page_count(data) for tier, data in outputs.items()},
@@ -205,16 +223,30 @@ def _fmt_bytes(value: int) -> str:
 
 
 def format_report(results: Dict[str, Any], *, workers: int) -> List[str]:
-    """Human-readable report lines for one run (phase-6 bench style)."""
+    """Human-readable report lines for one run.
+
+    Includes gocorepdfengine-compatible metric labels so multi-run
+    summarizers can parse::
+
+        Throughput: X ops/sec
+        Avg Latency: Y ms
+        Max Memory Allocated: Z MB
+    """
     mode = "pdfa4+pdfua2" if results["compliant"] else "pdf20"
     cache = "on" if results["cache"] else "off"
+    peak_mb = float(results.get("peak_mb") or 0.0)
+    ms_per_job = float(results.get("ms_per_job") or 0.0)
     lines = [
         "zerodha workload: %d jobs (80/15/5 retail/active/hft) %s cache=%s"
         % (results["iterations"], mode, cache),
         "  total time:        %.3f s" % results["total_time"],
+        "  Throughput:        %.2f ops/sec" % results["jobs_per_sec"],
+        "  Avg Latency:       %.3f ms" % ms_per_job,
+        "  Max Memory Allocated: %.2f MB" % peak_mb,
         "  jobs/sec:          %.2f (workers=%d, serial)" % (
             results["jobs_per_sec"], workers,
         ),
+        "  ms/job:            %.1f" % ms_per_job,
     ]
     for tier in _TIERS:
         stats = results["tiers"][tier]
@@ -236,7 +268,10 @@ def format_report(results: Dict[str, Any], *, workers: int) -> List[str]:
     total_bytes = sum(results["output_bytes"].values())
     lines.append("  output bytes:      total %d (%s)" % (total_bytes, _fmt_bytes(total_bytes)))
     lines.append("  compliance:        %s (embedded fonts)" % mode)
-    lines.append("  cache:             %s (seed %d)" % (cache, results["seed"]))
+    lines.append(
+        "  cache:             %s (model/template only; PDF never cached; seed %d)"
+        % (cache, results["seed"])
+    )
     retail_md5 = results["md5"].get("retail")
     if retail_md5 is not None:
         lines.append("  deterministic:     yes (retail md5 %s)" % retail_md5)

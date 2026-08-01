@@ -1,33 +1,35 @@
 #!/usr/bin/env bash
-# Zerodha gold standard: timing ×5 + CPU pprof ×5 + one heap profile (compliant).
+# Zerodha: BENCH_ITERATIONS × 5 sequential runs (compliant) + summary.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-OUT="${BENCH_OUT_DIR:-$REPO_ROOT/baselines/zerodha_pprof_runs}"
-ZERODHA="$REPO_ROOT/sampledata/zerodha"
-BIN="$OUT/zerodha_bench"
-
+OUT="${BENCH_OUT_DIR:-$REPO_ROOT/baselines/zerodha_bench_x5}"
+STATS="${BENCH_STATS_PATH:-$REPO_ROOT/baselines/zerodha_bench_x5_stats_latest.txt}"
 mkdir -p "$OUT"
-export BENCH_ITERATIONS="${BENCH_ITERATIONS:-5000}"
+
+export BENCH_ITERATIONS="${BENCH_ITERATIONS:-500}"
 export BENCH_WORKERS="${BENCH_WORKERS:-48}"
+export BENCH_CACHE="${BENCH_CACHE:-1}"
+export BENCH_SKIP_WRITE="${BENCH_SKIP_WRITE:-1}"
 
-echo "Zerodha benchmark x5 + pprof: iterations=$BENCH_ITERATIONS workers=$BENCH_WORKERS"
+PYTHON="${PYTHON:-python3}"
+
+echo "Zerodha benchmark ×5 (pythoncoreengine, sequential): iterations=$BENCH_ITERATIONS workers=$BENCH_WORKERS cache=$BENCH_CACHE"
 echo "Output: $OUT"
+echo "Stats:  $STATS"
+echo
 
-cd "$ZERODHA"
-go build -o "$BIN" .
-
-for i in 1 2 3 4 5; do
-  echo "=== Run $i / 5 (timing) ==="
-  "$BIN" 2>&1 | tee "$OUT/zerodha_run${i}.txt"
+cd "$REPO_ROOT"
+for i in $(seq 1 5); do
+  echo "=== Run $i / 5 ==="
+  "$PYTHON" -m engine.bench_zerodha \
+    --report "$OUT/zerodha_run${i}.txt"
+  echo "wrote $OUT/zerodha_run${i}.txt"
 done
 
-for i in 1 2 3 4 5; do
-  echo "=== CPU profile run $i / 5 ==="
-  "$BIN" -cpuprofile="$OUT/cpu_zerodha_run${i}.prof" 2>&1 | tee "$OUT/zerodha_cpu_run${i}.txt"
-done
+"$PYTHON" "$(dirname "${BASH_SOURCE[0]}")/summarize_runs.py" \
+  "$OUT" "$STATS" \
+  "${BENCH_X5_MEAN_GATE:-0}" "${BENCH_X5_MEDIAN_GATE:-0}" \
+  "# Zerodha x5 latest summary (pythoncoreengine harness)"
 
-echo "=== Heap profile run ==="
-"$BIN" -memprofile="$OUT/heap_zerodha.prof" 2>&1 | tee "$OUT/zerodha_heap.txt"
-
-echo "Done."
+echo "Done. Stats: $STATS"

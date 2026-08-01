@@ -24,6 +24,7 @@ StructElem and its MCID in one call.
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from typing import Callable, List, Optional, Protocol, Sequence, Set, Tuple
 
 from .content import ContentStream, RGB
@@ -32,16 +33,87 @@ from .structure import StructElem, StructureManager
 from .write import N, ObjectId
 
 __all__ = [
+    "Align",
+    "CellProps",
     "FlowHost",
     "PageFlow",
     "PageMargins",
+    "RichTableLayout",
+    "StyledCell",
     "TableLayout",
+    "parse_props",
     "text_width",
     "wrap_text",
 ]
 
 DEFAULT_MARGIN = 72.0
 _LINE_HEIGHT_FACTOR = 1.2
+
+# Text alignment for template props / rich cells (TEMPLATE_REFERENCE.md).
+Align = str  # "left" | "center" | "right"
+
+
+@dataclass(frozen=True)
+class CellProps:
+    """Parsed ``font:size:style:align:L:R:T:B`` props string."""
+
+    font_name: str = "Helvetica"
+    font_size: float = 10.0
+    bold: bool = False
+    italic: bool = False
+    underline: bool = False
+    align: str = "left"
+    border: Tuple[bool, bool, bool, bool] = (False, False, False, False)
+
+
+def parse_props(s: str) -> CellProps:
+    """Parse an 8-field props string (TEMPLATE_REFERENCE / gocorepdfengine).
+
+    Format: ``FontName:Size:BIU:align:left:right:top:bottom`` where BIU is
+    a 3-digit bold/italic/underline mask and border flags are ``0``/``1``.
+    Malformed input returns safe defaults rather than raising.
+    """
+    if not s:
+        return CellProps()
+    parts = s.split(":")
+    if len(parts) != 8:
+        return CellProps(font_name=parts[0] if parts else "Helvetica")
+    try:
+        size = float(parts[1])
+    except ValueError:
+        size = 10.0
+    style = parts[2]
+    bold = len(style) >= 1 and style[0] == "1"
+    italic = len(style) >= 2 and style[1] == "1"
+    underline = len(style) >= 3 and style[2] == "1"
+    align = parts[3] if parts[3] in ("left", "center", "right") else "left"
+    border = tuple(parts[4 + i] == "1" for i in range(4))  # type: ignore[assignment]
+    return CellProps(
+        font_name=parts[0] or "Helvetica",
+        font_size=size,
+        bold=bold,
+        italic=italic,
+        underline=underline,
+        align=align,
+        border=border,  # type: ignore[arg-type]
+    )
+
+
+@dataclass
+class StyledCell:
+    """One richly-styled table cell (template / financial-report path)."""
+
+    text: str = ""
+    font: str = "F1"
+    size: float = 10.0
+    text_color: Optional[RGB] = None
+    fill_color: Optional[RGB] = None
+    align: str = "left"
+    border: Tuple[bool, bool, bool, bool] = (False, False, False, False)
+    min_height: float = 0.0
+    image_data: Optional[bytes] = None
+    image_w: float = 0.0
+    image_h: float = 0.0
 
 
 def _is_dark(color: RGB) -> bool:
@@ -815,3 +887,181 @@ class TableLayout:
             stream.line(x, top, x, bottom)
         if manager is not None:
             stream.end_marked_content()
+
+
+class RichTableLayout:
+    """Fixed-column table with per-cell styling (template financial path).
+
+    Unlike :class:`TableLayout` (uniform string rows + optional hooks), each
+    cell carries its own font, size, colours, alignment, borders and optional
+    embedded image.  Used by the full-format JSON template renderer.
+    """
+
+    def __init__(
+        self,
+        *,
+        col_widths: Sequence[float],
+        rows: Sequence[Sequence[StyledCell]],
+        cell_padding: float = 4.0,
+        line_width: float = 0.5,
+        line_color: RGB = (0.3, 0.3, 0.3),
+        default_text_color: RGB = (0.0, 0.0, 0.0),
+    ) -> None:
+        self.col_widths = list(col_widths)
+        self.rows = [list(row) for row in rows]
+        self.cell_padding = cell_padding
+        self.line_width = line_width
+        self.line_color = line_color
+        self.default_text_color = default_text_color
+
+    def _row_height(self, cells: Sequence[StyledCell]) -> float:
+        height = 0.0
+        for cell, width in zip(cells, self.col_widths):
+            if cell.image_data is not None and cell.image_h > 0:
+                height = max(height, cell.image_h + 2 * self.cell_padding)
+            if cell.min_height > 0:
+                height = max(height, cell.min_height)
+            size = cell.size if cell.size > 0 else 10.0
+            lines = wrap_text(
+                cell.text, max(1.0, width - 2 * self.cell_padding), size
+            ) if cell.text else []
+            text_h = max(1, len(lines)) * size * _LINE_HEIGHT_FACTOR + 2 * self.cell_padding
+            height = max(height, text_h)
+        return height if height > 0 else 25.0
+
+    def emit(self, flow: PageFlow) -> None:
+        """Draw the table into ``flow`` from its current cursor."""
+        total = sum(self.col_widths)
+        if total > flow.content_width + 1e-6:
+            raise ValueError(
+                f"table width {total} exceeds content width {flow.content_width}"
+            )
+        x0 = flow.margins.left
+        column_x = [x0 + sum(self.col_widths[:i]) for i in range(len(self.col_widths) + 1)]
+
+        manager = flow.structure_manager()
+        table_elem = (
+            manager.create_element("Table", parent=manager.document_element())
+            if manager is not None
+            else None
+        )
+
+        for row in self.rows:
+            # Pad short rows so column count matches.
+            cells = list(row)
+            while len(cells) < len(self.col_widths):
+                cells.append(StyledCell())
+            height = self._row_height(cells)
+            flow.ensure_space(height)
+            row_elem = (
+                manager.create_element("TR", parent=table_elem, page=flow.page_index)
+                if manager is not None
+                else None
+            )
+            self._draw_row(flow, cells, flow.y, height, column_x, row_elem)
+            flow.y += height
+
+    def _draw_row(
+        self,
+        flow: PageFlow,
+        cells: Sequence[StyledCell],
+        y_top: float,
+        height: float,
+        column_x: List[float],
+        row_elem: Optional[StructElem],
+    ) -> None:
+        manager = flow.structure_manager()
+        stream = flow.stream
+        for col, cell in enumerate(cells):
+            if col >= len(self.col_widths):
+                break
+            width = self.col_widths[col]
+            x = column_x[col]
+            pdf_bottom = flow.pdf_y(y_top + height)
+
+            # Background fill (artifact under tagging).
+            if cell.fill_color is not None:
+                if manager is not None:
+                    stream.begin_artifact({N("Type"): N("Layout")})
+                stream.set_color_rgb(*cell.fill_color)
+                stream.filled_rect(x, pdf_bottom, width, height)
+                if manager is not None:
+                    stream.end_marked_content()
+
+            # Optional cell image (centered in the cell box).
+            if cell.image_data is not None:
+                iw = cell.image_w if cell.image_w > 0 else width - 2 * self.cell_padding
+                ih = cell.image_h if cell.image_h > 0 else height - 2 * self.cell_padding
+                iw = min(iw, width - 2 * self.cell_padding)
+                ih = min(ih, height - 2 * self.cell_padding)
+                ix = (width - iw) / 2.0
+                iy = y_top + (height - ih) / 2.0
+                # flow.image expects top-down coords relative to content box.
+                flow.image(
+                    cell.image_data,
+                    x=x - flow.margins.left + ix,
+                    y=iy,
+                    width=iw,
+                    height=ih,
+                    alt="Image",
+                )
+
+            # Text (always emit a TD under tagging so tables stay regular).
+            size = cell.size if cell.size > 0 else 10.0
+            leading = size * _LINE_HEIGHT_FACTOR
+            font = cell.font or "F1"
+            text_color = cell.text_color if cell.text_color is not None else self.default_text_color
+            lines = wrap_text(
+                cell.text, max(1.0, width - 2 * self.cell_padding), size
+            ) if cell.text else []
+            # Always emit a TD under tagging so every row has the same column count
+            # (PDF/UA-2 table regularity), including empty and image cells.
+            if manager is not None and row_elem is not None:
+                _cell_elem, mcid = manager.begin_cell(
+                    "TD",
+                    parent=row_elem,
+                    page_index=flow.page_index,
+                )
+                stream.begin_mcid("TD", mcid)
+            if lines:
+                flow.use_font(font)
+                for line_index, line in enumerate(lines):
+                    flow.record_chars(font, line)
+                    tw = text_width(line, size)
+                    if cell.align == "center":
+                        tx = x + (width - tw) / 2.0
+                    elif cell.align == "right":
+                        tx = x + width - self.cell_padding - tw
+                    else:
+                        tx = x + self.cell_padding
+                    stream.text_line(
+                        line,
+                        x=tx,
+                        y=flow.pdf_y(y_top + self.cell_padding + line_index * leading),
+                        resource_name=font,
+                        size=size,
+                        color=text_color,
+                        cids=flow.font_is_cid(font),
+                    )
+            if manager is not None and row_elem is not None:
+                stream.end_marked_content()
+
+            # Per-side borders (artifact under tagging).
+            bl, br, bt, bb = cell.border
+            if bl or br or bt or bb:
+                if manager is not None:
+                    stream.begin_artifact({N("Type"): N("Layout")})
+                stream.set_stroke_color_rgb(*self.line_color)
+                stream.set_line_width(self.line_width)
+                top = flow.pdf_y(y_top)
+                bottom = pdf_bottom
+                if bl:
+                    stream.line(x, top, x, bottom)
+                if br:
+                    stream.line(x + width, top, x + width, bottom)
+                if bt:
+                    stream.line(x, top, x + width, top)
+                if bb:
+                    stream.line(x, bottom, x + width, bottom)
+                if manager is not None:
+                    stream.end_marked_content()
