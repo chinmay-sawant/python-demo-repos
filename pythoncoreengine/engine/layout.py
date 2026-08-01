@@ -24,6 +24,7 @@ StructElem and its MCID in one call.
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from dataclasses import dataclass, field
 from typing import Callable, List, Optional, Protocol, Sequence, Set, Tuple
 
@@ -167,9 +168,17 @@ def _width_of_char(ch: str) -> int:
 
 
 def text_width(text: str, size: float = 12.0) -> float:
-    """Width of ``text`` in points at ``size`` (Helvetica metrics)."""
-    return sum(_width_of_char(ch) for ch in text) * size / 1000.0
+    """Width of ``text`` in points at ``size`` (Helvetica metrics).
 
+    Inlined width lookup (no per-character function call) — ``wrap_text`` and
+    table row-height paths call this millions of times on HFT/dense dumps.
+    """
+    widths = _HELVETICA_WIDTHS
+    total = 0
+    for ch in text:
+        code = ord(ch)
+        total += widths[code] if code < 256 else 556
+    return total * size / 1000.0
 
 def _longest_prefix(word: str, max_width: float, size: float) -> Tuple[str, str]:
     """Split ``word`` into the longest fitting prefix and the remainder."""
@@ -177,6 +186,13 @@ def _longest_prefix(word: str, max_width: float, size: float) -> Tuple[str, str]
         if text_width(word[:index], size) <= max_width:
             return word[:index], word[index:]
     return word[0], word[1:]
+
+
+# Bounded wrap cache: table height + draw re-wrap the same cell strings at the
+# same width/size (header redraw, multipage).  Returns a new list so callers
+# can safely mutate the result without poisoning the cache.
+_WRAP_TEXT_CACHE: "OrderedDict[Tuple[str, float, float], Tuple[str, ...]]" = OrderedDict()
+_WRAP_TEXT_CACHE_MAX = 8192
 
 
 def wrap_text(text: str, max_width: float, size: float = 12.0) -> List[str]:
@@ -188,6 +204,11 @@ def wrap_text(text: str, max_width: float, size: float = 12.0) -> List[str]:
     """
     if not text:
         return []
+    key = (text, max_width, size)
+    cached = _WRAP_TEXT_CACHE.get(key)
+    if cached is not None:
+        _WRAP_TEXT_CACHE.move_to_end(key)
+        return list(cached)
     lines: List[str] = []
     for raw_line in text.split("\n"):
         current = ""
@@ -207,6 +228,9 @@ def wrap_text(text: str, max_width: float, size: float = 12.0) -> List[str]:
                 lines.append(head)
         if current:
             lines.append(current)
+    _WRAP_TEXT_CACHE[key] = tuple(lines)
+    if len(_WRAP_TEXT_CACHE) > _WRAP_TEXT_CACHE_MAX:
+        _WRAP_TEXT_CACHE.popitem(last=False)
     return lines
 
 

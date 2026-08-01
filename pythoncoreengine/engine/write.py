@@ -356,9 +356,45 @@ def encode_value(value: Any) -> bytes:
     dictionary, ``None`` -> ``null`` (phase 7: the ``/XYZ`` destination
     zoom slot and other "no value" slots).  Anything else raises
     ``TypeError``.
+
+    Exact ``type(value) is ...`` checks run first for the hot dense-table /
+    structure-tree shapes (dict, list, ObjectId, PdfName, int) so the
+    multi-million ``isinstance`` cascade seen in cProfile is avoided on the
+    common path.  Subclass and uncommon types still fall through to
+    ``isinstance``.
     """
     if value is None:
         return b"null"
+    t = type(value)
+    # Hot path order matches HFT/dense dumps: nested dicts and arrays of
+    # refs/names/numbers dominate encode_value call counts.
+    if t is dict:
+        return encode_dict(value)
+    if t is list:
+        return encode_array(value)
+    if t is tuple:
+        return encode_array(list(value))
+    if t is ObjectId:
+        return value.render_ref()
+    if t is PdfName:
+        return encode_name(value)
+    if t is int:
+        return format_number_bytes(value)
+    if t is float:
+        return format_number_bytes(value)
+    if t is str:
+        return encode_string(value)
+    if t is bytes:
+        return encode_string(value)
+    if t is PdfBool:
+        return b"true" if value.value else b"false"
+    if t is PdfHexString:
+        return encode_hex_string(value)
+    if t is FixedDigits:
+        return FixedDigits.render(int(value))
+    if t is bool:
+        raise TypeError("PDF has no boolean object type")
+    # Subclass / uncommon fall-through (keeps API permissive).
     if isinstance(value, ObjectId):
         return value.render_ref()
     if isinstance(value, PdfBool):
@@ -368,8 +404,6 @@ def encode_value(value: Any) -> bytes:
     if isinstance(value, PdfName):
         return encode_name(value)
     if isinstance(value, FixedDigits):
-        # Fixed-width splice slot (signature /ByteRange): the emitted byte
-        # count must be identical before and after the signer rewrites it.
         return FixedDigits.render(int(value))
     if isinstance(value, str):
         return encode_string(value)
@@ -384,7 +418,6 @@ def encode_value(value: Any) -> bytes:
     if isinstance(value, dict):
         return encode_dict(value)
     raise TypeError(f"cannot encode value of type {type(value).__name__}")
-
 
 def encode_object(obj_id: int, value: Any) -> bytes:
     """Encode a complete indirect object ``N 0 obj ... endobj``."""

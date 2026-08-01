@@ -43,6 +43,13 @@ from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
 
 from .write import N, ObjectId, PdfName, compressed_stream
 
+# Process-level TTF parse cache (path -> parsed face).  Multi-job mixes re-open
+# the same Liberation files every DocumentBuilder; cProfile on zerodha_mix_20
+# showed from_file / table parse as a large share of short-doc wall.  Subset
+# bytes remain separately cached in _SUBSET_BYTES_CACHE.
+_TTF_FILE_CACHE: "OrderedDict[str, TTFFont]" = OrderedDict()
+_TTF_FILE_CACHE_MAX = 16
+
 __all__ = [
     "FontChain",
     "FontEntry",
@@ -208,9 +215,23 @@ class TTFFont:
 
     @classmethod
     def from_file(cls, path: Union[str, Path]) -> "TTFFont":
-        """Parse the TTF file at ``path`` (name for errors taken from it)."""
+        """Parse the TTF file at ``path`` (name for errors taken from it).
+
+        Parsed faces are cached per resolved path for the process lifetime
+        (bounded LRU).  :class:`TTFFont` is treated as immutable after
+        construction; subsetting never mutates the source face.
+        """
         path = Path(path)
-        return cls(path.read_bytes(), str(path))
+        key = str(path.resolve()) if path.exists() else str(path)
+        cached = _TTF_FILE_CACHE.get(key)
+        if cached is not None:
+            _TTF_FILE_CACHE.move_to_end(key)
+            return cached
+        font = cls(path.read_bytes(), str(path))
+        _TTF_FILE_CACHE[key] = font
+        if len(_TTF_FILE_CACHE) > _TTF_FILE_CACHE_MAX:
+            _TTF_FILE_CACHE.popitem(last=False)
+        return font
 
     # ------------------------------------------------------------------
     # Table access

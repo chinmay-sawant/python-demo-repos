@@ -149,3 +149,25 @@ dense table: 2000 rows x 8 cols (mode_pdfa4 + mode_pdfua2, tagged)
   peak heap (tracemalloc): 36.27 MiB
   deterministic:      yes (md5 5b5cb4c2399131e4d5a3903c72f6dd89)
 
+run 2026-08-01 19:19:17  rows=2000 cols=8
+dense table: 2000 rows x 8 cols (mode_pdfa4 + mode_pdfua2, tagged)
+  layout time:        0.130 s
+  render time:        0.183 s (parallel_compress default)
+  render time:        0.207 s (parallel_compress=False)
+  compress share:     0.022 s (10.7% of serial render)
+  pages:              53 (3.4 ms/page avg)
+  output bytes:       3176014 (3.03 MiB)
+  peak heap (tracemalloc): 35.41 MiB
+  deterministic:      yes (md5 5b5cb4c2399131e4d5a3903c72f6dd89)
+
+run 2026-08-01 19:25:47  rows=2000 cols=8
+dense table: 2000 rows x 8 cols (mode_pdfa4 + mode_pdfua2, tagged)
+  layout time:        0.210 s
+  render time:        0.266 s (parallel_compress default)
+  render time:        0.248 s (parallel_compress=False)
+  compress share:     0.026 s (10.3% of serial render)
+  pages:              53 (5.0 ms/page avg)
+  output bytes:       3176014 (3.03 MiB)
+  peak heap (tracemalloc): 24.48 MiB
+  deterministic:      yes (md5 5b5cb4c2399131e4d5a3903c72f6dd89)
+

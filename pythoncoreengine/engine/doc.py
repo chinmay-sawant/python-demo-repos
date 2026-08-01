@@ -47,6 +47,28 @@ from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
+# Process-level compress pool: creating/joining a ThreadPoolExecutor per
+# multipage document showed ~0.27–0.29 s of join/bootstrap in cProfile
+# (parallel-compress-wait).  Reuse one bounded pool for the process so only
+# the zlib work remains on the hot path.
+_COMPRESS_POOL: Optional[ThreadPoolExecutor] = None
+_COMPRESS_POOL_SIZE = 0
+_PARALLEL_COMPRESS_MIN_PAGES = 4  # skip pool setup for tiny multipage docs
+
+
+def _get_compress_pool(workers: int) -> ThreadPoolExecutor:
+    """Return a process-global pool with ``workers`` threads (create once)."""
+    global _COMPRESS_POOL, _COMPRESS_POOL_SIZE
+    pool = _COMPRESS_POOL
+    if pool is not None and _COMPRESS_POOL_SIZE == workers:
+        return pool
+    if pool is not None:
+        pool.shutdown(wait=False)
+    pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="pdf-zlib")
+    _COMPRESS_POOL = pool
+    _COMPRESS_POOL_SIZE = workers
+    return pool
+
 from .color import ICCProfile
 from .content import ContentStream
 from .encrypt import EncryptSpec, encrypt_pdf
@@ -241,7 +263,13 @@ class Document:
         offsets = self._pooled_offsets
         offsets[0] = 0
 
-        estimate = sum(len(body) for _number, body in self._objects)
+        objects = self._objects
+        # Near-exact estimate: object bodies are already encoded; only
+        # header/xref/trailer overhead remains.  Avoid large over-alloc that
+        # showed up as multi-MiB final-buffer ranks in tracemalloc dumps.
+        estimate = 0
+        for _number, body in objects:
+            estimate += len(body)
         estimate += size * 40 + 256  # obj headers/footers + xref entries + trailer
         buffer = self._pooled_buffer
         if buffer is None or len(buffer) < estimate:
@@ -250,7 +278,7 @@ class Document:
         writer.write(b"%PDF-2.0\n")
         writer.write(b"%\xe2\xe3\xcf\xd3\n")  # binary comment line (bytes >= 128)
 
-        for number, body in self._objects:
+        for number, body in objects:
             offsets[number] = writer.tell()
             writer.write(body)
 
@@ -273,7 +301,7 @@ class Document:
                 "render: %d objects, %d bytes written, high-water %d, "
                 "buffer capacity %d"
                 % (
-                    len(self._objects),
+                    len(objects),
                     stats["length"],
                     stats["high_water"],
                     len(buffer),
@@ -836,13 +864,22 @@ class DocumentBuilder:
         compression.  Each task renders its own raw stream (a pure read of
         the stream operators and the CID mapper) and compresses it, so no
         copy of all raw streams is kept at peak.  ``parallel_compress=False``
-        (or a single page) falls back to the serial path.
+        (or fewer than ``_PARALLEL_COMPRESS_MIN_PAGES`` pages) falls back
+        to the serial path.
+
+        The worker pool is process-global so multipage documents do not pay
+        ThreadPoolExecutor bootstrap/join (~0.27 s on HFT dumps) every time.
         """
         self._compressed_pages = None
         if self._flow is None:
             return
         streams = self._flow.streams
-        if not self.compress or len(streams) < 2 or not self.parallel_compress:
+        n_streams = len(streams)
+        if (
+            not self.compress
+            or n_streams < _PARALLEL_COMPRESS_MIN_PAGES
+            or not self.parallel_compress
+        ):
             return
         mapper = self._cid_mapper
 
@@ -851,10 +888,10 @@ class DocumentBuilder:
 
         workers = min(os.cpu_count() or 1, 8)
         if workers < 2:
-            self._compressed_pages = [task(index) for index in range(len(streams))]
+            self._compressed_pages = [task(index) for index in range(n_streams)]
             return
-        with ThreadPoolExecutor(max_workers=workers) as executor:
-            self._compressed_pages = list(executor.map(task, range(len(streams))))
+        pool = _get_compress_pool(workers)
+        self._compressed_pages = list(pool.map(task, range(n_streams)))
 
     def font_face(
         self, family: str, *, bold: bool = False, italic: bool = False
@@ -1199,7 +1236,20 @@ class DocumentBuilder:
                 self._doc.set_stream(ref, data, extra)
             else:
                 self._doc.set_value(ref, thunk())
-        self._compressed_pages = None  # bodies are encoded; release the pool copy
+        # Release layout-side state before final assembly copies object
+        # bodies into the PDF buffer (final-pdf-buffer / structure dumps):
+        # compressed page copies, reserved thunk closures, and content
+        # operator lists are no longer needed once bodies are attached.
+        self._compressed_pages = None
+        self._reserved.clear()
+        flow = self._flow
+        if flow is not None:
+            for stream in flow.streams:
+                clear = getattr(stream, "clear_operators", None)
+                if clear is not None:
+                    clear()
+                elif hasattr(stream, "_operators"):
+                    stream._operators = []
         self._doc.set_root(self._catalog_ref)
         if not self._pdfa:
             self._doc.set_info(self._info_ref)

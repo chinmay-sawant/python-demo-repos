@@ -248,7 +248,17 @@ class StructureManager:
         :meth:`ContentStream.begin_mcid`.  The per-page MCID->element map is
         keyed by ``(page_index, mcid)``-addressable dict as usual, so the
         ParentTree thunk stays unchanged.
+
+        Hot path (dump structure-cell-heap): MCID is allocated up front and
+        stored as the sole kid so we skip a second ``add_mcid`` pass and
+        avoid growing empty kid lists on every dense-table cell.
         """
+        while len(self._page_mcids) <= page_index:
+            self._page_mcids.append({})
+            self._mcid_counts.append(0)
+        mcid = self._mcid_counts[page_index]
+        self._mcid_counts[page_index] = mcid + 1
+
         elem = StructElem(
             type_name,
             parent=parent,
@@ -257,10 +267,12 @@ class StructureManager:
             struct_id=struct_id,
             headers=headers,
         )
-        elem.obj_ref = self._reserve_value(lambda: self._element_dict(elem))
+        # Single-MCID cell: seed kids with the MCID (no later append / add_mcid).
+        elem.kids = [mcid]
+        elem.obj_ref = self._reserve_value(lambda e=elem: self._element_dict(e))
         parent.kids.append(elem)
         self._elements.append(elem)
-        mcid = self.begin_content(elem, page_index)
+        self._page_mcids[page_index][mcid] = elem
         return elem, mcid
 
     def mcid_count(self, page_index: int) -> int:
@@ -421,8 +433,11 @@ class StructureManager:
         Covers the dense-table cell case (``<< /Type /StructElem /S /TD
         /P <parent> /K [mcid ...] /Pg <page> >>``) and the element-ref-only
         TR case (``/K`` holds child element references).  Keys and the type
-        name come from module-level caches; only the kids array is built
-        fresh.
+        name come from module-level caches.
+
+        Leaf cell kids are integer MCIDs only and are frozen by render
+        time, so the kids list is reused in-place (no ``list()`` copy) to
+        cut the multi-MiB allocation rank seen under ``begin_cell``.
         """
         d: Dict[PdfName, Any] = {
             _N_TYPE: _N_STRUCTELEM,
@@ -432,18 +447,20 @@ class StructureManager:
             d[_N_P] = self._tree_root_ref
         elif elem.parent is not None:
             d[_N_P] = elem.parent.obj_ref
-        if elem.kids:
-            if any(isinstance(kid, StructElem) for kid in elem.kids):
+        kids = elem.kids
+        if kids:
+            first = kids[0]
+            if isinstance(first, StructElem) or isinstance(first, dict):
                 d[_N_K] = [
                     kid.obj_ref if isinstance(kid, StructElem) else kid
-                    for kid in elem.kids
+                    for kid in kids
                 ]
             else:
-                d[_N_K] = list(elem.kids)
+                # Pure MCID list (dense TD/TH) — reuse the list object.
+                d[_N_K] = kids
         if elem.page is not None:
             d[_N_PG] = self._page_ref(elem.page)
         return d
-
 
 def link_annotation_dict(
     rect: Sequence[float], uri: str

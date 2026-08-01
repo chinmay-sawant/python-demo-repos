@@ -18,6 +18,7 @@ from __future__ import annotations
 import binascii
 import struct
 import zlib
+from collections import OrderedDict
 from typing import Any, Dict, List, Optional, Tuple
 
 from .write import N, PdfName
@@ -26,6 +27,7 @@ __all__ = [
     "ImageInfo",
     "JPEGImage",
     "PNGImage",
+    "clear_png_cache",
     "decode_png",
     "parse_image",
     "parse_jpeg",
@@ -37,6 +39,19 @@ _MARKERS_WITHOUT_LENGTH = (0x01, 0xD8, 0xD9)  # TEM, SOI, EOI
 
 _COLORSPACE_BY_COMPONENTS = {1: "DeviceGray", 3: "DeviceRGB"}
 _CHANNELS_BY_COLOR_TYPE = {0: 1, 2: 3, 6: 4}
+
+# Process-level decode cache: financial (and other) multi-job benches re-render
+# the same embedded PNG bytes every job; Paeth unfiltering is pure-Python and
+# dominated the financial cProfile dump (~96% of wall).  Keyed by the input
+# PNG bytes (immutable), returns a shared PNGImage with cached Flate XObject
+# payload.  Bounded LRU so long-running processes cannot grow without limit.
+_PNG_DECODE_CACHE: "OrderedDict[bytes, PNGImage]" = OrderedDict()
+_PNG_DECODE_CACHE_MAX = 16
+
+
+def clear_png_cache() -> None:
+    """Drop the process-level PNG decode cache (tests / long-lived hosts)."""
+    _PNG_DECODE_CACHE.clear()
 
 
 class ImageInfo:
@@ -105,6 +120,7 @@ class PNGImage(ImageInfo):
     ) -> None:
         super().__init__(width=width, height=height, colorspace=colorspace)
         self.scanlines = scanlines
+        self._xobject_payload: Optional[Tuple[bytes, Dict[PdfName, Any]]] = None
 
     def pixel_at(self, x: int, y: int) -> Tuple[int, ...]:
         """Return the pixel at ``(x, y)``: 3 RGB values or 1 gray value."""
@@ -114,9 +130,16 @@ class PNGImage(ImageInfo):
         return tuple(self.scanlines[start:start + channels])
 
     def xobject_stream(self) -> Tuple[bytes, Dict[PdfName, Any]]:
+        cached = self._xobject_payload
+        if cached is not None:
+            # Return a fresh extra dict so PDF/A rewrites cannot mutate the cache.
+            data, extra = cached
+            return data, dict(extra)
         extra = self._image_dict()
         extra[N("Filter")] = N("FlateDecode")
-        return zlib.compress(self.scanlines), extra
+        data = zlib.compress(self.scanlines)
+        self._xobject_payload = (data, dict(extra))
+        return data, extra
 
 
 def parse_image(data: bytes) -> ImageInfo:
@@ -189,7 +212,24 @@ def decode_png(data: bytes) -> PNGImage:
     Filters 0-4 (None/Sub/Up/Average/Paeth) are undone per scanline with
     the PNG specification's reconstruction formulas; RGBA sources drop the
     alpha byte per pixel, gray sources stay single-channel.
+
+    Identical input bytes are served from a process-level LRU cache so
+    multi-job benches (and repeated embeds of the same asset) pay the pure-
+    Python filter loop only once.
     """
+    cached = _PNG_DECODE_CACHE.get(data)
+    if cached is not None:
+        _PNG_DECODE_CACHE.move_to_end(data)
+        return cached
+    image = _decode_png_uncached(data)
+    _PNG_DECODE_CACHE[data] = image
+    if len(_PNG_DECODE_CACHE) > _PNG_DECODE_CACHE_MAX:
+        _PNG_DECODE_CACHE.popitem(last=False)
+    return image
+
+
+def _decode_png_uncached(data: bytes) -> PNGImage:
+    """Decode without consulting :data:`_PNG_DECODE_CACHE`."""
     if not data.startswith(_PNG_SIGNATURE):
         raise ValueError("not a PNG stream")
     pos = len(_PNG_SIGNATURE)
