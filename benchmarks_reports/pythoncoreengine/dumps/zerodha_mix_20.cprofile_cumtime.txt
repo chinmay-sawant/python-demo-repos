@@ -1,0 +1,52 @@
+# cProfile dump  stem=zerodha_mix_20  sort=cumtime
+# wall_seconds=0.374388
+# raw_pstats=zerodha_mix_20.pstats
+
+         1171046 function calls (1134830 primitive calls) in 0.374 seconds
+
+   Ordered by: cumulative time
+   List reduced from 405 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.374    0.374 <stdin>:156(run_mix)
+       20    0.000    0.000    0.374    0.019 render.py:310(build_document)
+       20    0.003    0.000    0.279    0.014 doc.py:1178(render)
+     1954    0.001    0.000    0.100    0.000 doc.py:170(set_value)
+27490/2978    0.028    0.000    0.099    0.000 write.py:350(encode_value)
+     1954    0.001    0.000    0.098    0.000 write.py:389(encode_object)
+3998/2676    0.016    0.000    0.097    0.000 write.py:339(encode_dict)
+       20    0.000    0.000    0.091    0.005 render.py:198(_layout_content)
+      140    0.000    0.000    0.089    0.001 layout.py:648(table)
+       20    0.000    0.000    0.089    0.004 font.py:1121(generate_subsets)
+       40    0.000    0.000    0.089    0.002 font.py:742(generate_subset)
+      140    0.001    0.000    0.089    0.001 layout.py:730(emit)
+     2306    0.000    0.000    0.081    0.000 font.py:726(ttf)
+       40    0.000    0.000    0.080    0.002 font.py:209(from_file)
+       40    0.001    0.000    0.075    0.002 font.py:178(__init__)
+      356    0.008    0.000    0.057    0.000 layout.py:782(_draw_row)
+10706/7526    0.006    0.000    0.047    0.000 {method 'join' of 'bytes' objects}
+5158/3154    0.003    0.000    0.045    0.000 write.py:334(encode_array)
+15720/10558    0.003    0.000    0.041    0.000 write.py:336(<genexpr>)
+    74040    0.023    0.000    0.039    0.000 font.py:232(_unpack)
+       40    0.011    0.000    0.031    0.001 font.py:264(_parse_hmtx)
+     3528    0.004    0.000    0.029    0.000 layout.py:182(wrap_text)
+       40    0.000    0.000    0.028    0.001 render.py:184(_info_table)
+1224/1215    0.004    0.000    0.026    0.000 content.py:81(render)
+     4326    0.002    0.000    0.024    0.000 layout.py:169(text_width)
+     4948    0.007    0.000    0.023    0.000 {built-in method builtins.sum}
+      712    0.002    0.000    0.022    0.000 layout.py:712(_row_height)
+       40    0.001    0.000    0.022    0.001 font.py:277(_parse_cmap)
+    22/21    0.002    0.000    0.022    0.001 content.py:301(render)
+       22    0.000    0.000    0.021    0.001 doc.py:804(<lambda>)
+       22    0.000    0.000    0.021    0.001 doc.py:818(_page_stream)
+      100    0.000    0.000    0.021    0.000 layout.py:748(draw_header)
+   223806    0.020    0.000    0.020    0.000 {built-in method builtins.isinstance}
+       80    0.010    0.000    0.019    0.000 font.py:299(_cmap_format_4)
+       40    0.005    0.000    0.019    0.000 font.py:351(_parse_loca)
+    18442    0.009    0.000    0.017    0.000 write.py:235(format_number_bytes)
+       20    0.000    0.000    0.017    0.001 doc.py:829(_render_page_streams)
+  142/140    0.000    0.000    0.017    0.000 write.py:394(compressed_stream)
+        2    0.000    0.000    0.017    0.008 _base.py:646(__exit__)
+        2    0.000    0.000    0.017    0.008 thread.py:220(shutdown)
+
+

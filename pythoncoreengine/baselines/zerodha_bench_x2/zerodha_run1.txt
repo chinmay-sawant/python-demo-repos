@@ -1,14 +1,15 @@
-run 2026-08-01 16:48:14  iterations=20 seed=42 cache=1 compliant=True workers=48
-zerodha workload: 20 jobs (80/15/5 retail/active/hft) pdfa4+pdfua2 cache=on
-  total time:        0.516 s
-  Throughput:        38.75 ops/sec
-  Avg Latency:       25.808 ms
-  Max Memory Allocated: 7.82 MB
-  jobs/sec:          38.75 (workers=48, serial)
-  ms/job:            25.8
-  retail    18 jobs    0.41 s (  22.7 ms/job,    1 pages,   34.2 KiB)
-  active     2 jobs    0.11 s (  54.1 ms/job,    2 pages,   77.6 KiB)
-  output bytes:      total 114537 (111.9 KiB)
+run 2026-08-01 17:50:53  iterations=50 seed=42 cache=1 compliant=True workers=48
+zerodha workload: 50 jobs (80/15/5 retail/active/hft) pdfa4+pdfua2 cache=on
+  total time:        3.983 s
+  Throughput:        12.55 ops/sec
+  Avg Latency:       79.652 ms
+  Max Memory Allocated: 34.29 MB
+  jobs/sec:          12.55 (workers=48, serial)
+  ms/job:            79.7
+  retail    41 jobs    0.85 s (  20.7 ms/job,    1 pages,   34.2 KiB)
+  active     7 jobs    0.33 s (  47.4 ms/job,    2 pages,   77.6 KiB)
+  hft        2 jobs    2.80 s (1401.7 ms/job,   39 pages,   2.35 MiB)
+  output bytes:      total 2579485 (2.46 MiB)
   compliance:        pdfa4+pdfua2 (embedded fonts)
   cache:             on (model/template only; PDF never cached; seed 42)
-  deterministic:     yes (retail md5 bc200081a1ed1e80c9faf6346f6bed7d)
+  deterministic:     yes (retail md5 1687f7dff75bd91c2ab5b95c58fea9cd)

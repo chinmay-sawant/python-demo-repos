@@ -1,0 +1,7 @@
+stem=retail_once
+profile_wall_s=0.016773
+heap_run_wall_s=0.102631
+peak_mb=0.9186
+current_mb=0.6984
+cwd=/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine
+python=3.13.10

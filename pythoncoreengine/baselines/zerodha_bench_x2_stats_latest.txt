@@ -1,15 +1,15 @@
 # Zerodha x2 latest summary (pythoncoreengine harness)
 
 Runs: 2
-Best throughput: 40.06 ops/sec
-Worst throughput: 38.75 ops/sec
-Mean throughput: 39.41 ops/sec
-Median throughput: 39.41 ops/sec
-Stddev throughput: 0.93 ops/sec
-Mean avg latency: 25.386 ms
-Mean peak allocated: 7.82 MB
+Best throughput: 12.55 ops/sec
+Worst throughput: 12.43 ops/sec
+Mean throughput: 12.49 ops/sec
+Median throughput: 12.49 ops/sec
+Stddev throughput: 0.08 ops/sec
+Mean avg latency: 80.057 ms
+Mean peak allocated: 34.29 MB
 
 | Run | Throughput | Avg latency | Peak allocated |
 |-----|-----------:|------------:|---------------:|
-| zerodha_run1.txt | 38.75 ops/sec | 25.808 ms | 7.82 MB |
-| zerodha_run2.txt | 40.06 ops/sec | 24.964 ms | 7.82 MB |
+| zerodha_run1.txt | 12.55 ops/sec | 79.652 ms | 34.29 MB |
+| zerodha_run2.txt | 12.43 ops/sec | 80.462 ms | 34.29 MB |

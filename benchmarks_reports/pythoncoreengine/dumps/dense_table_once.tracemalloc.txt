@@ -1,0 +1,369 @@
+# tracemalloc heap snapshot  stem=dense_table_once
+# current_bytes=31009975  peak_bytes=37967114
+# current_mb=29.57  peak_mb=36.21
+
+# traced_total_bytes=31010103 (29.57 MiB)
+
+## rank=1  size=3536952 (3454.1 KiB)  count=2
+  File "<stdin>", line 70
+  File "<stdin>", line 64
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1206
+    return self._apply_encryption(self._doc.render())
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 248
+    buffer = bytearray(estimate)
+
+## rank=2  size=3454272 (3373.3 KiB)  count=31984
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 778
+    self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 866
+    cell_elem, mcid = manager.begin_cell(
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py", line 260
+    elem.obj_ref = self._reserve_value(lambda: self._element_dict(elem))
+
+## rank=3  size=3108268 (3035.4 KiB)  count=18565
+  File "<stdin>", line 70
+  File "<stdin>", line 64
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1201
+    self._doc.set_value(ref, thunk())
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 176
+    self._attach(obj_id, encode_object(obj_id.number, value))
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/write.py", line 391
+    return b"%d 0 obj\n" % obj_id + encode_value(value) + b"\nendobj\n"
+
+## rank=4  size=1791224 (1749.2 KiB)  count=15993
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 778
+    self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 866
+    cell_elem, mcid = manager.begin_cell(
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py", line 252
+    elem = StructElem(
+
+## rank=5  size=1407392 (1374.4 KiB)  count=15993
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 778
+    self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 877
+    flow.stream.text_line(
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py", line 168
+    _DeferredText(text, x, y, resource_name, size, color, leading)
+
+## rank=6  size=1279360 (1249.4 KiB)  count=31984
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 778
+    self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 866
+    cell_elem, mcid = manager.begin_cell(
+
+## rank=7  size=1193336 (1165.4 KiB)  count=18566
+  File "<stdin>", line 70
+  File "<stdin>", line 64
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1201
+    self._doc.set_value(ref, thunk())
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 176
+    self._attach(obj_id, encode_object(obj_id.number, value))
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 210
+    self._objects.append((obj_id.number, body))
+
+## rank=8  size=1151424 (1124.4 KiB)  count=31984
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 778
+    self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 866
+    cell_elem, mcid = manager.begin_cell(
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py", line 252
+    elem = StructElem(
+
+## rank=9  size=1068384 (1043.3 KiB)  count=14293
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 778
+    self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 866
+    cell_elem, mcid = manager.begin_cell(
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py", line 260
+    elem.obj_ref = self._reserve_value(lambda: self._element_dict(elem))
+
+## rank=10  size=999680 (976.2 KiB)  count=55
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 780
+    self._draw_grid(flow, flow.y - height, flow.y, column_x)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 914
+    stream.line(x, top, x, bottom)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py", line 291
+    self.stroke()
+
+## rank=11  size=895552 (874.6 KiB)  count=15992
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 778
+    self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 866
+    cell_elem, mcid = manager.begin_cell(
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py", line 252
+    elem = StructElem(
+
+## rank=12  size=890288 (869.4 KiB)  count=15992
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 778
+    self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 874
+    flow.stream.begin_mcid(tag, mcid)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py", line 208
+    self._operators.append(b"/%s << /MCID %d >> BDC" % (escape_name(tag), mcid))
+
+## rank=13  size=687656 (671.5 KiB)  count=15992
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 778
+    self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 865
+    header_id = "H%d" % col
+
+## rank=14  size=647395 (632.2 KiB)  count=13993
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 780
+    self._draw_grid(flow, flow.y - height, flow.y, column_x)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 914
+    stream.line(x, top, x, bottom)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py", line 290
+    self.line_to(x2, y2)
+
+## rank=15  size=642775 (627.7 KiB)  count=13993
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 780
+    self._draw_grid(flow, flow.y - height, flow.y, column_x)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 914
+    stream.line(x, top, x, bottom)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py", line 289
+    self.move_to(x1, y1)
+
+## rank=16  size=639680 (624.7 KiB)  count=15992
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 778
+    self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 866
+    cell_elem, mcid = manager.begin_cell(
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py", line 260
+    elem.obj_ref = self._reserve_value(lambda: self._element_dict(elem))
+
+## rank=17  size=596000 (582.0 KiB)  count=18625
+  File "<stdin>", line 70
+  File "<stdin>", line 64
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1206
+    return self._apply_encryption(self._doc.render())
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 255
+    writer.write(body)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/write.py", line 488
+    end = offset + len(data)
+
+## rank=18  size=512824 (500.8 KiB)  count=56
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 778
+    self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 866
+    cell_elem, mcid = manager.begin_cell(
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py", line 263
+    mcid = self.begin_content(elem, page_index)
+
+## rank=19  size=511744 (499.8 KiB)  count=15992
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 778
+    self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 866
+    cell_elem, mcid = manager.begin_cell(
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py", line 263
+    mcid = self.begin_content(elem, page_index)
+
+## rank=20  size=505408 (493.6 KiB)  count=15794
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 778
+    self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 866
+    cell_elem, mcid = manager.begin_cell(
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py", line 260
+    elem.obj_ref = self._reserve_value(lambda: self._element_dict(elem))
+
+## rank=21  size=431784 (421.7 KiB)  count=3998
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 774
+    manager.create_element("TR", parent=table_elem, page=flow.page_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py", line 211
+    elem.obj_ref = self._reserve_value(lambda: self._element_dict(elem))
+
+## rank=22  size=383040 (374.1 KiB)  count=15960
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 778
+    self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 880
+    y=flow.pdf_y(
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 339
+    return self.page_size[1] - self.margins.top - top_down
+
+## rank=23  size=382944 (374.0 KiB)  count=15956
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 778
+    self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 879
+    x=column_x[col] + self.cell_padding,
+
+## rank=24  size=297935 (291.0 KiB)  count=63
+  File "<stdin>", line 70
+  File "<stdin>", line 64
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1199
+    self._doc.set_stream(ref, data, extra)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 185
+    self._attach(obj_id, encode_stream_object(obj_id.number, data, stream_dict))
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/write.py", line 418
+    return b"%d 0 obj\n" % obj_id + body
+
+## rank=25  size=276630 (270.1 KiB)  count=2
+  File "<stdin>", line 70
+  File "<stdin>", line 64
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1183
+    self._font_registry.generate_subsets()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 1126
+    entry.generate_subset()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 753
+    subsetter = TTFSubsetter(self.ttf, sorted(self.chars))
+
+## rank=26  size=270680 (264.3 KiB)  count=1804
+  File "<stdin>", line 70
+  File "<stdin>", line 64
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1201
+    self._doc.set_value(ref, thunk())
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 176
+    self._attach(obj_id, encode_object(obj_id.number, value))
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/write.py", line 391
+    return b"%d 0 obj\n" % obj_id + encode_value(value) + b"\nendobj\n"
+
+## rank=27  size=223888 (218.6 KiB)  count=1999
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 774
+    manager.create_element("TR", parent=table_elem, page=flow.page_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py", line 201
+    elem = StructElem(
+
+## rank=28  size=159920 (156.2 KiB)  count=3998
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 774
+    manager.create_element("TR", parent=table_elem, page=flow.page_index)
+
+## rank=29  size=153696 (150.1 KiB)  count=1
+  File "<stdin>", line 70
+  File "<stdin>", line 63
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 778
+    self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 866
+    cell_elem, mcid = manager.begin_cell(
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py", line 262
+    self._elements.append(elem)
+
+## rank=30  size=149088 (145.6 KiB)  count=2
+  File "<stdin>", line 70
+  File "<stdin>", line 64
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1206
+    return self._apply_encryption(self._doc.render())
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 240
+    self._pooled_offsets = [0] * size
+
+# --- top by lineno ---
+ 1.   3467.8 KiB  count= 32880  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:260
+     |         elem.obj_ref = self._reserve_value(lambda: self._element_dict(elem))
+ 2.   3454.1 KiB  count=     2  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py:248
+     |             buffer = bytearray(estimate)
+ 3.   3035.4 KiB  count= 18565  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/write.py:391
+     |     return b"%d 0 obj\n" % obj_id + encode_value(value) + b"\nendobj\n"
+ 4.   1798.2 KiB  count= 16441  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:252
+     |         elem = StructElem(
+ 5.   1412.9 KiB  count= 16441  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py:168
+     |                 _DeferredText(text, x, y, resource_name, size, color, leading)
+ 6.   1284.4 KiB  count= 32880  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py:866
+     |                 cell_elem, mcid = manager.begin_cell(
+ 7.   1186.2 KiB  count= 16579  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py:775
+     |         self._reserved.append((ref, "value", thunk))
+ 8.   1168.8 KiB  count= 18629  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py:210
+     |         self._objects.append((obj_id.number, body))
+ 9.   1124.4 KiB  count= 31984  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:118
+     |         self.headers = list(headers) if headers else None
+10.   1011.6 KiB  count= 18497  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:119
+     |         self.kids: List[Any] = []
+11.    976.2 KiB  count=    55  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py:271
+     |         self._operators.append(b"S")
+12.    893.0 KiB  count= 16440  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py:208
+     |         self._operators.append(b"/%s << /MCID %d >> BDC" % (escape_name(tag), mcid))
+13.    835.6 KiB  count= 18496  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py:258
+     |         self._operators.append(_num(x) + b" " + _num(y) + b" m")
+14.    834.4 KiB  count= 18495  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py:262
+     |         self._operators.append(_num(x) + b" " + _num(y) + b" l")
+15.    727.7 KiB  count= 18628  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py:166
+     |         obj_id = ObjectId(self._next_number)
+16.    690.4 KiB  count= 16440  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py:865
+     |                 header_id = "H%d" % col
+17.    582.0 KiB  count= 18625  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/write.py:488
+     |             end = offset + len(data)
+18.    574.2 KiB  count= 18373  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py:167
+     |         self._next_number += 1
+19.    513.8 KiB  count= 16440  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:129
+     |         self.kids.append(mcid)
+20.    500.8 KiB  count=    56  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:229
+     |         self._page_mcids[page_index][mcid] = elem
+21.    433.8 KiB  count=  4113  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:211
+     |         elem.obj_ref = self._reserve_value(lambda: self._element_dict(elem))
+22.    384.4 KiB  count= 16402  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py:339
+     |         return self.page_size[1] - self.margins.top - top_down
+23.    384.2 KiB  count= 16394  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py:879
+     |                     x=column_x[col] + self.cell_padding,
+24.    291.0 KiB  count=    63  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/write.py:418
+     |     return b"%d 0 obj\n" % obj_id + body
+25.    272.0 KiB  count=  2050  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/write.py:93
+     |     cache[key] = value
+26.    270.1 KiB  count=     2  /usr/lib/python3.13/pathlib/_abc.py:626
+     |             return f.read()
+27.    225.0 KiB  count=  2057  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:201
+     |         elem = StructElem(
+28.    156.2 KiB  count=  3998  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py:774
+     |                 manager.create_element("TR", parent=table_elem, page=flow.page_index)
+29.    150.1 KiB  count=     1  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:262
+     |         self._elements.append(elem)
+30.    145.6 KiB  count=     2  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py:240
+     |             self._pooled_offsets = [0] * size
+31.    136.1 KiB  count=  2111  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py:196
+     |                 b"/%s %s BDC" % (escape_name(tag), encode_dict(properties))
+32.    128.4 KiB  count=  2055  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:261
+     |         parent.kids.append(elem)
+33.     95.7 KiB  count=  2000  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/bench.py:46
+     |                 "SKU-%04d" % row,
+34.     94.3 KiB  count=  2055  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py:241
+     |         self._operators.append(_num(r) + b" " + _num(g) + b" " + _num(b) + b" RG")
+35.     91.6 KiB  count=  2000  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/bench.py:49
+     |                 "%.2f" % (9.99 + (row % 500) * 1.5),
+36.     85.9 KiB  count=  2000  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/bench.py:50
+     |                 str(100 + (row % 900)),
+37.     85.5 KiB  count=  2000  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/bench.py:52
+     |                 str((row * 7) % 500),
+38.     85.0 KiB  count=  2111  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py:237
+     |         self._operators.append(_num(r) + b" " + _num(g) + b" " + _num(b) + b" rg")
+39.     84.0 KiB  count=  2048  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/write.py:193
+     |         encoded = b"%d 0 R" % self.number
+40.     76.3 KiB  count=  2055  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py:245
+     |         self._operators.append(_num(width) + b" w")

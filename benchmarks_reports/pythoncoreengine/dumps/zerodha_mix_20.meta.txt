@@ -1,0 +1,7 @@
+stem=zerodha_mix_20
+profile_wall_s=0.374388
+heap_run_wall_s=2.498588
+peak_mb=4.7454
+current_mb=3.1089
+cwd=/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine
+python=3.13.10

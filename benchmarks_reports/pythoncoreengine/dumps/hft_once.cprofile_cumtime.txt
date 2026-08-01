@@ -1,0 +1,52 @@
+# cProfile dump  stem=hft_once  sort=cumtime
+# wall_seconds=1.840303
+# raw_pstats=hft_once.pstats
+
+         6143488 function calls (5728182 primitive calls) in 1.840 seconds
+
+   Ordered by: cumulative time
+   List reduced from 497 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    1.840    1.840 render.py:310(build_document)
+        1    0.012    0.012    1.121    1.121 doc.py:1178(render)
+    14348    0.008    0.000    0.720    0.000 doc.py:170(set_value)
+        1    0.000    0.000    0.717    0.717 render.py:198(_layout_content)
+        7    0.000    0.000    0.714    0.102 layout.py:648(table)
+        7    0.007    0.001    0.714    0.102 layout.py:730(emit)
+    14348    0.008    0.000    0.702    0.000 write.py:389(encode_object)
+190230/17575    0.187    0.000    0.701    0.000 write.py:350(encode_value)
+29885/17522    0.110    0.000    0.674    0.000 write.py:339(encode_dict)
+       40    0.001    0.000    0.661    0.017 _base.py:612(result_iterator)
+       39    0.001    0.000    0.655    0.017 _base.py:314(_result_or_cancel)
+       39    0.001    0.000    0.639    0.016 _base.py:428(result)
+     2047    0.064    0.000    0.453    0.000 layout.py:782(_draw_row)
+82064/57719    0.043    0.000    0.352    0.000 {method 'join' of 'bytes' objects}
+38770/26667    0.022    0.000    0.343    0.000 write.py:334(encode_array)
+102440/66031    0.021    0.000    0.312    0.000 write.py:336(<genexpr>)
+121946/107587    0.027    0.000    0.284    0.000 content.py:54(_num)
+     19/3    0.003    0.000    0.279    0.093 {method 'get' of '_queue.SimpleQueue' objects}
+        1    0.000    0.000    0.275    0.275 doc.py:829(_render_page_streams)
+        1    0.000    0.000    0.275    0.275 _base.py:646(__exit__)
+        1    0.000    0.000    0.275    0.275 thread.py:220(shutdown)
+        8    0.000    0.000    0.275    0.034 threading.py:1059(join)
+        8    0.001    0.000    0.275    0.034 {method 'join' of '_thread._ThreadHandle' objects}
+      8/1    0.000    0.000    0.274    0.274 threading.py:1001(_bootstrap)
+      8/1    0.000    0.000    0.274    0.274 threading.py:1028(_bootstrap_inner)
+      8/1    0.001    0.000    0.274    0.274 threading.py:984(run)
+      8/1    0.000    0.000    0.274    0.274 thread.py:70(_worker)
+       43    0.001    0.000    0.239    0.006 threading.py:327(wait)
+    36726    0.038    0.000    0.215    0.000 layout.py:182(wrap_text)
+12320/1243    0.038    0.000    0.181    0.000 content.py:81(render)
+     39/4    0.008    0.000    0.178    0.045 content.py:301(render)
+     4094    0.021    0.000    0.161    0.000 layout.py:712(_row_height)
+     2047    0.011    0.000    0.159    0.000 layout.py:897(_draw_grid)
+    36801    0.020    0.000    0.158    0.000 layout.py:169(text_width)
+  1517061    0.142    0.000    0.142    0.000 {built-in method builtins.isinstance}
+    36853    0.037    0.000    0.142    0.000 {built-in method builtins.sum}
+134639/123082    0.071    0.000    0.120    0.000 write.py:235(format_number_bytes)
+    14281    0.010    0.000    0.103    0.000 content.py:287(line)
+   232500    0.047    0.000    0.101    0.000 layout.py:171(<genexpr>)
+   156599    0.053    0.000    0.094    0.000 write.py:312(encode_name)
+
+

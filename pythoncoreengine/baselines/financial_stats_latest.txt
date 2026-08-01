@@ -1,14 +1,14 @@
-run 2026-08-01 16:39:06  iterations=1 cache=1 compliant=True workers=48
-financial workload: 1 jobs (template JSON -> rich tables) pdfa4+pdfua2 cache=on
-  total time:        14.797 s
+run 2026-08-01 17:50:48  iterations=3 cache=1 compliant=True workers=48
+financial workload: 3 jobs (template JSON -> rich tables) pdfa4+pdfua2 cache=on
+  total time:        40.139 s
   Throughput:        0.07 ops/sec
-  Avg Latency:       14796.825 ms
-  Max Memory Allocated: 8.11 MB
+  Avg Latency:       13379.566 ms
+  Max Memory Allocated: 14.65 MB
   jobs/sec:          0.07 (workers=48, serial)
-  ms/job:            14796.8
+  ms/job:            13379.6
   pages:             2
-  output bytes:      98083 (95.8 KiB)
+  output bytes:      98086 (95.8 KiB)
   compliance:        pdfa4+pdfua2 (embedded fonts)
   cache:             on (template only; PDF never cached)
-  deterministic:     yes (md5 6ac03e036265282b11a479a358eb419e)
+  deterministic:     yes (md5 72ac7a3586270e5f6923be6a25c59d80)
   fixture:           /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/sampledata/financial/financial_report.json

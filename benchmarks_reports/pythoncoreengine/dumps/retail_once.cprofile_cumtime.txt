@@ -1,0 +1,52 @@
+# cProfile dump  stem=retail_once  sort=cumtime
+# wall_seconds=0.016773
+# raw_pstats=retail_once.pstats
+
+         48446 function calls (47121 primitive calls) in 0.017 seconds
+
+   Ordered by: cumulative time
+   List reduced from 319 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.017    0.017 render.py:310(build_document)
+        1    0.000    0.000    0.014    0.014 doc.py:1178(render)
+        1    0.000    0.000    0.006    0.006 font.py:1121(generate_subsets)
+        2    0.000    0.000    0.006    0.003 font.py:742(generate_subset)
+      115    0.000    0.000    0.005    0.000 font.py:726(ttf)
+        2    0.000    0.000    0.005    0.002 font.py:209(from_file)
+        2    0.000    0.000    0.005    0.002 font.py:178(__init__)
+ 1019/116    0.001    0.000    0.004    0.000 write.py:350(encode_value)
+       71    0.000    0.000    0.004    0.000 doc.py:170(set_value)
+  144/101    0.001    0.000    0.004    0.000 write.py:339(encode_dict)
+       71    0.000    0.000    0.004    0.000 write.py:389(encode_object)
+        1    0.000    0.000    0.003    0.003 render.py:198(_layout_content)
+        7    0.000    0.000    0.003    0.000 layout.py:648(table)
+        7    0.000    0.000    0.003    0.000 layout.py:730(emit)
+     3702    0.001    0.000    0.002    0.000 font.py:232(_unpack)
+        2    0.000    0.000    0.002    0.001 font.py:277(_parse_cmap)
+  383/270    0.000    0.000    0.002    0.000 {method 'join' of 'bytes' objects}
+       14    0.000    0.000    0.002    0.000 layout.py:782(_draw_row)
+  185/108    0.000    0.000    0.002    0.000 write.py:334(encode_array)
+        4    0.001    0.000    0.002    0.000 font.py:299(_cmap_format_4)
+        2    0.001    0.000    0.002    0.001 font.py:264(_parse_hmtx)
+  593/404    0.000    0.000    0.002    0.000 write.py:336(<genexpr>)
+        2    0.000    0.000    0.001    0.001 render.py:184(_info_table)
+        1    0.000    0.000    0.001    0.001 doc.py:804(<lambda>)
+        1    0.000    0.000    0.001    0.001 doc.py:818(_page_stream)
+        1    0.000    0.000    0.001    0.001 content.py:301(render)
+        5    0.000    0.000    0.001    0.000 layout.py:748(draw_header)
+        2    0.000    0.000    0.001    0.000 font.py:351(_parse_loca)
+      108    0.000    0.000    0.001    0.000 layout.py:182(wrap_text)
+       38    0.000    0.000    0.001    0.000 content.py:81(render)
+        2    0.000    0.000    0.001    0.000 font.py:547(build)
+      200    0.000    0.000    0.001    0.000 {built-in method builtins.sum}
+        7    0.000    0.000    0.001    0.000 write.py:394(compressed_stream)
+        7    0.001    0.000    0.001    0.000 {built-in method zlib.compress}
+      148    0.000    0.000    0.001    0.000 layout.py:169(text_width)
+     8378    0.001    0.000    0.001    0.000 {built-in method builtins.isinstance}
+      668    0.000    0.000    0.001    0.000 write.py:235(format_number_bytes)
+       28    0.000    0.000    0.001    0.000 layout.py:712(_row_height)
+     5430    0.001    0.000    0.001    0.000 {method 'append' of 'list' objects}
+     3876    0.001    0.000    0.001    0.000 {built-in method _struct.unpack_from}
+
+

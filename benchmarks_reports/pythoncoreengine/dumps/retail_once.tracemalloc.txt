@@ -1,0 +1,387 @@
+# tracemalloc heap snapshot  stem=retail_once
+# current_bytes=732318  peak_bytes=963241
+# current_mb=0.70  peak_mb=0.92
+# top allocations by traceback (size, count, top frames)
+
+# traced_total_bytes=732382 (0.70 MiB)
+
+## rank=1  size=276630 (270.1 KiB)  count=2
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1183
+    self._font_registry.generate_subsets()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 1126
+
+## rank=2  size=73776 (72.0 KiB)  count=2
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1183
+    self._font_registry.generate_subsets()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 1126
+
+## rank=3  size=55488 (54.2 KiB)  count=1356
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1183
+    self._font_registry.generate_subsets()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 1126
+
+## rank=4  size=44156 (43.1 KiB)  count=1549
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1183
+    self._font_registry.generate_subsets()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 1126
+
+## rank=5  size=36812 (35.9 KiB)  count=2
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1206
+    return self._apply_encryption(self._doc.render())
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 248
+
+## rank=6  size=35090 (34.3 KiB)  count=1
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1206
+    return self._apply_encryption(self._doc.render())
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 269
+
+## rank=7  size=30464 (29.8 KiB)  count=952
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1183
+    self._font_registry.generate_subsets()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 1126
+
+## rank=8  size=24590 (24.0 KiB)  count=8
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1199
+    self._doc.set_stream(ref, data, extra)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 185
+
+## rank=9  size=22144 (21.6 KiB)  count=692
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1183
+    self._font_registry.generate_subsets()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 1126
+
+## rank=10  size=12160 (11.9 KiB)  count=2
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1183
+    self._font_registry.generate_subsets()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 1126
+
+## rank=11  size=12160 (11.9 KiB)  count=2
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1183
+    self._font_registry.generate_subsets()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 1126
+
+## rank=12  size=11316 (11.1 KiB)  count=71
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1201
+    self._doc.set_value(ref, thunk())
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 176
+
+## rank=13  size=4528 (4.4 KiB)  count=4
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1183
+    self._font_registry.generate_subsets()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 1126
+
+## rank=14  size=4096 (4.0 KiB)  count=128
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1183
+    self._font_registry.generate_subsets()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 1126
+
+## rank=15  size=3304 (3.2 KiB)  count=2
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1183
+    self._font_registry.generate_subsets()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 1126
+
+## rank=16  size=3016 (2.9 KiB)  count=5
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 329
+    _layout_content(flow, note)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 228
+    _info_table(flow, _label_rows(pairs), _FIN_LABEL_WIDTH, width)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 186
+
+## rank=17  size=2688 (2.6 KiB)  count=48
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1201
+    self._doc.set_value(ref, thunk())
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 176
+
+## rank=18  size=2510 (2.5 KiB)  count=40
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1183
+    self._font_registry.generate_subsets()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 1126
+
+## rank=19  size=2432 (2.4 KiB)  count=76
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1206
+    return self._apply_encryption(self._doc.render())
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 255
+
+## rank=20  size=2288 (2.2 KiB)  count=2
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1183
+    self._font_registry.generate_subsets()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 1126
+
+## rank=21  size=2288 (2.2 KiB)  count=2
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1183
+    self._font_registry.generate_subsets()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 1126
+
+## rank=22  size=2048 (2.0 KiB)  count=1
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 329
+    _layout_content(flow, note)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 204
+    _info_table(
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 186
+
+## rank=23  size=2048 (2.0 KiB)  count=1
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 329
+    _layout_content(flow, note)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 203
+    _section_bar(flow, "CLIENT INFORMATION", width)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 166
+
+## rank=24  size=1920 (1.9 KiB)  count=12
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 329
+    _layout_content(flow, note)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 218
+    flow.table(build_trade_table(note))
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 650
+
+## rank=25  size=1680 (1.6 KiB)  count=60
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 332
+    return builder.render()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 1183
+    self._font_registry.generate_subsets()
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py", line 1126
+
+## rank=26  size=1520 (1.5 KiB)  count=1
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 320
+    builder = DocumentBuilder(
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py", line 634
+    self._outline_manager: Optional[OutlineManager] = None
+
+## rank=27  size=1344 (1.3 KiB)  count=12
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 329
+    _layout_content(flow, note)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 218
+    flow.table(build_trade_table(note))
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 650
+
+## rank=28  size=1280 (1.2 KiB)  count=8
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 329
+    _layout_content(flow, note)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 228
+    _info_table(flow, _label_rows(pairs), _FIN_LABEL_WIDTH, width)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 186
+
+## rank=29  size=1104 (1.1 KiB)  count=1
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 329
+    _layout_content(flow, note)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 218
+    flow.table(build_trade_table(note))
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 650
+
+## rank=30  size=1056 (1.0 KiB)  count=12
+  File "<stdin>", line 222
+  File "<stdin>", line 150
+  File "<stdin>", line 118
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 329
+    _layout_content(flow, note)
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/render.py", line 218
+    flow.table(build_trade_table(note))
+  File "/home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py", line 650
+
+# --- top by lineno ---
+ 1.    270.1 KiB  count=     2  /usr/lib/python3.13/pathlib/_abc.py:626
+     |             return f.read()
+ 2.     72.0 KiB  count=     2  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py:294
+     |                 mapping.update(self._cmap_format_6(offset))
+ 3.     54.2 KiB  count=  1356  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py:354
+     |                 self._unpack(">H", "loca", 2 * index)[0] * 2
+ 4.     44.1 KiB  count=  1582  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py:234
+     |         return struct.unpack_from(fmt, self._data, base + offset)
+ 5.     35.9 KiB  count=     2  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py:248
+     |             buffer = bytearray(estimate)
+ 6.     34.3 KiB  count=     1  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/write.py:502
+     |         return bytes(self._buffer[: self._used])
+ 7.     29.8 KiB  count=   952  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py:313
+     |             for code in range(start_codes[index], end_codes[index] + 1):
+ 8.     24.0 KiB  count=     8  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/write.py:418
+     |     return b"%d 0 obj\n" % obj_id + body
+ 9.     21.6 KiB  count=   692  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py:315
+     |                     gid = (code + id_deltas[index]) & 0xFFFF
+10.     11.9 KiB  count=     2  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py:270
+     |             self.left_side_bearings.append(lsb)
+11.     11.9 KiB  count=     2  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py:269
+     |             self.advances.append(advance)
+12.     11.1 KiB  count=    71  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/write.py:391
+     |     return b"%d 0 obj\n" % obj_id + encode_value(value) + b"\nendobj\n"
+13.      5.6 KiB  count=    36  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:260
+     |         elem.obj_ref = self._reserve_value(lambda: self._element_dict(elem))
+14.      4.4 KiB  count=     4  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py:516
+     |         self.chars: Set[str] = set(chars)
+15.      4.0 KiB  count=   128  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py:325
+     |                         gid = (gid + id_deltas[index]) & 0xFFFF
+16.      4.0 KiB  count=     2  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py:724
+     |         self.chars.update(text)
+17.      3.9 KiB  count=    36  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:252
+     |         elem = StructElem(
+18.      3.4 KiB  count=    22  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:211
+     |         elem.obj_ref = self._reserve_value(lambda: self._element_dict(elem))
+19.      3.3 KiB  count=    38  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py:168
+     |                 _DeferredText(text, x, y, resource_name, size, color, leading)
+20.      3.2 KiB  count=    11  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py:241
+     |         self._operators.append(_num(r) + b" " + _num(g) + b" " + _num(b) + b" RG")
+21.      3.2 KiB  count=     2  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py:537
+     |         self.glyph_map = {old: new for new, old in enumerate(self._ordered)}
+22.      3.1 KiB  count=    79  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py:166
+     |         obj_id = ObjectId(self._next_number)
+23.      2.8 KiB  count=    72  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py:866
+     |                 cell_elem, mcid = manager.begin_cell(
+24.      2.8 KiB  count=    51  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/write.py:336
+     |     return b"[" + b" ".join(encode_value(item) for item in items) + b"]"
+25.      2.5 KiB  count=    40  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py:199
+     |             self._tables[tag.decode("ascii", "replace")] = (offset, length)
+26.      2.4 KiB  count=    22  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:201
+     |         elem = StructElem(
+27.      2.4 KiB  count=    76  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/write.py:488
+     |             end = offset + len(data)
+28.      2.2 KiB  count=     2  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py:539
+     |             char: self.glyph_map[gid] for char, gid in self.char_gids.items()
+29.      2.2 KiB  count=     2  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py:525
+     |             self.char_gids[char] = self.ttf.glyph_id(char) or 0
+30.      2.0 KiB  count=    42  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py:262
+     |         self._operators.append(_num(x) + b" " + _num(y) + b" l")
+31.      1.9 KiB  count=    36  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py:208
+     |         self._operators.append(b"/%s << /MCID %d >> BDC" % (escape_name(tag), mcid))
+32.      1.9 KiB  count=    42  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py:258
+     |         self._operators.append(_num(x) + b" " + _num(y) + b" m")
+33.      1.8 KiB  count=    52  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:118
+     |         self.headers = list(headers) if headers else None
+34.      1.7 KiB  count=    26  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py:237
+     |         self._operators.append(_num(r) + b" " + _num(g) + b" " + _num(b) + b" rg")
+35.      1.6 KiB  count=    60  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/font.py:194
+     |             tag, _checksum, offset, length = _TABLE_RECORD.unpack_from(
+36.      1.5 KiB  count=    36  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/layout.py:865
+     |                 header_id = "H%d" % col
+37.      1.5 KiB  count=     1  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/doc.py:634
+     |         self._outline_manager: Optional[OutlineManager] = None
+38.      1.4 KiB  count=    21  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/content.py:196
+     |                 b"/%s %s BDC" % (escape_name(tag), encode_dict(properties))
+39.      1.1 KiB  count=    36  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:129
+     |         self.kids.append(mcid)
+40.      1.1 KiB  count=     1  /home/chinmay/ChinmayPersonalProjects/codehound-python-perf-targets/pythoncoreengine/engine/structure.py:229
+     |         self._page_mcids[page_index][mcid] = elem

@@ -1,0 +1,5 @@
+stem=dense_table_once
+profile_wall_s=2.103446
+heap_run_wall_s=7.912700
+peak_mb=36.2083
+current_mb=29.5734

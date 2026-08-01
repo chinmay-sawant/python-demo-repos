@@ -1,0 +1,52 @@
+# cProfile dump  stem=zerodha_mix_20  sort=tottime
+# wall_seconds=0.374388
+# raw_pstats=zerodha_mix_20.pstats
+
+         1171046 function calls (1134830 primitive calls) in 0.374 seconds
+
+   Ordered by: internal time
+   List reduced from 405 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+27490/2978    0.028    0.000    0.099    0.000 write.py:350(encode_value)
+    74040    0.023    0.000    0.039    0.000 font.py:232(_unpack)
+   223806    0.020    0.000    0.020    0.000 {built-in method builtins.isinstance}
+  142/140    0.016    0.000    0.016    0.000 {built-in method zlib.compress}
+3998/2676    0.016    0.000    0.097    0.000 write.py:339(encode_dict)
+   130598    0.014    0.000    0.014    0.000 {method 'append' of 'list' objects}
+    72284    0.012    0.000    0.012    0.000 {method 'get' of 'dict' objects}
+       40    0.011    0.000    0.031    0.001 font.py:264(_parse_hmtx)
+    75876    0.011    0.000    0.011    0.000 {built-in method _struct.unpack_from}
+       80    0.010    0.000    0.019    0.000 font.py:299(_cmap_format_4)
+    18442    0.009    0.000    0.017    0.000 write.py:235(format_number_bytes)
+      356    0.008    0.000    0.057    0.000 layout.py:782(_draw_row)
+    21082    0.007    0.000    0.014    0.000 write.py:312(encode_name)
+    36410    0.007    0.000    0.016    0.000 layout.py:171(<genexpr>)
+     4948    0.007    0.000    0.023    0.000 {built-in method builtins.sum}
+    45858    0.006    0.000    0.006    0.000 {method 'move_to_end' of 'collections.OrderedDict' objects}
+10706/7526    0.006    0.000    0.047    0.000 {method 'join' of 'bytes' objects}
+    32084    0.006    0.000    0.009    0.000 layout.py:162(_width_of_char)
+    76018    0.006    0.000    0.006    0.000 font.py:219(_table)
+       40    0.005    0.000    0.019    0.000 font.py:351(_parse_loca)
+    11690    0.004    0.000    0.013    0.000 content.py:92(<genexpr>)
+1224/1215    0.004    0.000    0.026    0.000 content.py:81(render)
+     3528    0.004    0.000    0.029    0.000 layout.py:182(wrap_text)
+    10466    0.004    0.000    0.006    0.000 font.py:1108(cid_for)
+15720/10558    0.003    0.000    0.041    0.000 write.py:336(<genexpr>)
+    13514    0.003    0.000    0.016    0.000 content.py:54(_num)
+     1692    0.003    0.000    0.008    0.000 structure.py:351(_element_dict)
+       20    0.003    0.000    0.279    0.014 doc.py:1178(render)
+     4694    0.003    0.000    0.004    0.000 write.py:103(__new__)
+    28258    0.003    0.000    0.003    0.000 {built-in method builtins.len}
+     2940    0.003    0.000    0.005    0.000 write.py:284(escape_name)
+5158/3154    0.003    0.000    0.045    0.000 write.py:334(encode_array)
+    33920    0.003    0.000    0.003    0.000 {built-in method builtins.ord}
+     6584    0.002    0.000    0.005    0.000 write.py:187(render_ref)
+    22/21    0.002    0.000    0.022    0.001 content.py:301(render)
+     1364    0.002    0.000    0.015    0.000 {method 'join' of 'str' objects}
+      712    0.002    0.000    0.022    0.000 layout.py:712(_row_height)
+     1176    0.002    0.000    0.006    0.000 structure.py:233(begin_cell)
+     9254    0.002    0.000    0.002    0.000 {method 'encode' of 'str' objects}
+     4326    0.002    0.000    0.024    0.000 layout.py:169(text_width)
+
+
