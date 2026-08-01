@@ -49,6 +49,29 @@ __all__ = [
 DEFAULT_MARGIN = 72.0
 _LINE_HEIGHT_FACTOR = 1.2
 
+
+def _cell_text_baseline(
+    y_top: float,
+    height: float,
+    line_index: int,
+    n_lines: int,
+    leading: float,
+) -> float:
+    """Top-down Y of the PDF text baseline for one line inside a cell.
+
+    PDF ``Tj`` positions the *baseline*, not the top of the glyph.  Using
+    ``y_top + padding`` as the baseline therefore draws the body of the
+    letter into the top border (the classic "text too high" look).  We
+    vertically centre an ``n_lines``-line block of height
+    ``n_lines * leading`` inside the cell and put each baseline at the
+    bottom of its line box -- the same placement as gocorepdfengine
+    (``startY = y - H + (H - fontSize*1.2)/2`` for a single line).
+    """
+    lines = max(int(n_lines), 1)
+    text_block = lines * leading
+    return y_top + (height - text_block) / 2.0 + (line_index + 1) * leading
+
+
 # Text alignment for template props / rich cells (TEMPLATE_REFERENCE.md).
 Align = str  # "left" | "center" | "right"
 
@@ -854,7 +877,11 @@ class TableLayout:
                 flow.stream.text_line(
                     line,
                     x=column_x[col] + self.cell_padding,
-                    y=flow.pdf_y(y_top + self.cell_padding + line_index * leading),
+                    y=flow.pdf_y(
+                        _cell_text_baseline(
+                            y_top, height, line_index, len(lines), leading
+                        )
+                    ),
                     resource_name=font,
                     size=size,
                     cids=flow.font_is_cid(font),
@@ -1037,7 +1064,11 @@ class RichTableLayout:
                     stream.text_line(
                         line,
                         x=tx,
-                        y=flow.pdf_y(y_top + self.cell_padding + line_index * leading),
+                        y=flow.pdf_y(
+                            _cell_text_baseline(
+                                y_top, height, line_index, len(lines), leading
+                            )
+                        ),
                         resource_name=font,
                         size=size,
                         color=text_color,

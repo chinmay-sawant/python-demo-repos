@@ -13,6 +13,7 @@ import unittest
 
 from engine import DocumentBuilder, PageMargins, PageFlow, TableLayout
 from engine.content import ContentStream
+from engine.layout import _LINE_HEIGHT_FACTOR, _cell_text_baseline
 from engine.write import ObjectId
 from engine.tests.helpers import (
     all_objects_with,
@@ -54,6 +55,45 @@ def _table_flow(**kwargs) -> PageFlow:
     table = TableLayout(col_widths=[100, 100, 100], header=header, rows=rows, **kwargs)
     table.emit(flow)
     return flow
+
+
+class TestCellTextBaseline(unittest.TestCase):
+    """Regression: cell text must not sit on the top border (PDF baseline)."""
+
+    def test_single_line_baseline_is_below_top_padding(self) -> None:
+        # Row height for one 10pt line with default padding 4: 10*1.2 + 8 = 20.
+        size, pad = 10.0, 4.0
+        leading = size * _LINE_HEIGHT_FACTOR
+        height = leading + 2 * pad
+        baseline = _cell_text_baseline(0.0, height, 0, 1, leading)
+        # Old bug placed baseline at pad (4).  Correct placement is
+        # (height + leading)/2 == pad + leading == 16 for these numbers.
+        self.assertAlmostEqual(baseline, pad + leading)
+        self.assertGreater(baseline, pad + size * 0.5)
+
+    def test_table_body_text_td_is_not_at_cell_top(self) -> None:
+        flow = PageFlow(host=_StubHost())
+        size = 10.0
+        pad = 4.0
+        table = TableLayout(
+            col_widths=[200],
+            header=None,
+            rows=[["Body"]],
+            size=size,
+            cell_padding=pad,
+            grid=True,
+        )
+        table.emit(flow)
+        ops = flow.stream.render().decode("latin-1")
+        # Top-down baseline for the body cell (y_top=0): pad + leading.
+        leading = size * _LINE_HEIGHT_FACTOR
+        expected_pdf_y = flow.pdf_y(pad + leading)
+        match = re.search(r"([\d.]+)\s+([\d.]+)\s+Td\s*\n\s*\(Body\)\s+Tj", ops)
+        self.assertIsNotNone(match, ops[:400])
+        td_y = float(match.group(2))
+        self.assertAlmostEqual(td_y, expected_pdf_y, places=2)
+        # Lower on the page than the old buggy baseline at pdf_y(pad).
+        self.assertLess(td_y, flow.pdf_y(pad) - 1.0)
 
 
 class TestTableGrid(unittest.TestCase):
