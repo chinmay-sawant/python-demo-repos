@@ -40,6 +40,7 @@ __all__ = [
     "PdfBool",
     "PdfHexString",
     "PdfName",
+    "RawPdfBody",
     "compressed_stream",
     "encode_array",
     "encode_dict",
@@ -164,6 +165,20 @@ class PdfHexString(bytes):
     """A PDF hex string ``<...>``; the bytes are rendered as lowercase hex."""
 
     __slots__ = ()
+
+
+class RawPdfBody:
+    """A pre-encoded PDF value (dictionary/array/…) ready for :func:`encode_object`.
+
+    Dense structure trees build the same TD/TH shape tens of thousands of
+    times; emitting the dictionary as bytes once avoids recursive
+    :func:`encode_value` / :func:`encode_dict` on every cell.
+    """
+
+    __slots__ = ("data",)
+
+    def __init__(self, data: bytes) -> None:
+        self.data = data
 
 
 class ObjectId:
@@ -333,17 +348,30 @@ def encode_hex_string(data: bytes) -> bytes:
 
 def encode_array(items: List[Any]) -> bytes:
     """Encode a PDF array ``[ ... ]`` of encoded values."""
-    return b"[" + b" ".join(encode_value(item) for item in items) + b"]"
+    if not items:
+        return b"[]"
+    # Hot path: single-int MCID arrays from table cells.
+    if len(items) == 1:
+        only = items[0]
+        if type(only) is int:
+            return b"[%d]" % only
+        if type(only) is ObjectId:
+            return b"[%s]" % only.render_ref()
+    parts = [encode_value(item) for item in items]
+    return b"[" + b" ".join(parts) + b"]"
 
 
 def encode_dict(pairs: Dict[Any, Any]) -> bytes:
     """Encode a dictionary ``<< /Key value ... >>`` preserving key order."""
     chunks: List[bytes] = []
+    append = chunks.append
     for key, value in pairs.items():
-        if not isinstance(key, str):
-            raise TypeError(f"dictionary keys must be names, got {type(key).__name__}")
-        chunks.append(encode_name(key))
-        chunks.append(encode_value(value))
+        tkey = type(key)
+        if tkey is PdfName or tkey is str:
+            append(encode_name(key))
+        else:
+            raise TypeError(f"dictionary keys must be names, got {tkey.__name__}")
+        append(encode_value(value))
     return b"<< " + b" ".join(chunks) + b" >>"
 
 
@@ -368,6 +396,8 @@ def encode_value(value: Any) -> bytes:
     t = type(value)
     # Hot path order matches HFT/dense dumps: nested dicts and arrays of
     # refs/names/numbers dominate encode_value call counts.
+    if t is RawPdfBody:
+        return value.data
     if t is dict:
         return encode_dict(value)
     if t is list:

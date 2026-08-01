@@ -32,12 +32,13 @@ from __future__ import annotations
 
 from typing import Any, Callable, Dict, List, Optional, Sequence
 
-from .write import N, ObjectId, PdfName
+from .write import N, ObjectId, PdfName, RawPdfBody, encode_string
 
 __all__ = [
     "PDF2_SSN_NAMESPACE",
     "StructElem",
     "StructureManager",
+    "header_id_list",
     "link_annotation_dict",
 ]
 
@@ -59,8 +60,12 @@ _N_SCOPE = N("Scope")
 _N_HEADERS = N("Headers")
 _N_STRUCTELEM = N("StructElem")
 
-# Cached PdfName per element type (``TD``, ``TH``, ``TR``, ...).
+# Cached PdfName per element type (``TD``, ``TH``, ``TR``, ...) and table
+# attribute tokens (``Column``, ...).
 _ELEM_TYPE_NAMES: Dict[str, PdfName] = {}
+
+# Reused /Headers lists for column indices 0..63 (HFT/dense tables).
+_HEADER_ID_LISTS: List[List[str]] = [["H%d" % i] for i in range(64)]
 
 
 def _elem_type_name(type_name: str) -> PdfName:
@@ -70,6 +75,13 @@ def _elem_type_name(type_name: str) -> PdfName:
         cached = N(type_name)
         _ELEM_TYPE_NAMES[type_name] = cached
     return cached
+
+
+def header_id_list(col: int) -> List[str]:
+    """Cached ``[\"Hn\"]`` list for table column ``col`` (avoids per-cell alloc)."""
+    if 0 <= col < len(_HEADER_ID_LISTS):
+        return _HEADER_ID_LISTS[col]
+    return ["H%d" % col]
 
 
 class StructElem:
@@ -115,7 +127,14 @@ class StructElem:
         self.page = page
         self.scope = scope
         self.struct_id = struct_id
-        self.headers = list(headers) if headers else None
+        # Dense tables pass a cached list from header_id_list(); keep it
+        # without copying so encode can reuse the same /Headers object.
+        if headers is None:
+            self.headers = None
+        elif type(headers) is list:
+            self.headers = headers
+        else:
+            self.headers = list(headers)
         self.kids: List[Any] = []
         self.obj_ref: Optional[ObjectId] = None
 
@@ -363,12 +382,11 @@ class StructureManager:
     def _element_dict(self, elem: StructElem) -> Dict[PdfName, Any]:
         """The StructElem dictionary for ``elem`` (rendered at attach time).
 
-        Leaf elements (the dense-table cell case: owned MCIDs only, no
-        title/alt/scope headers) take the single-use fast path in
-        :meth:`element_dict_fast`; anything else (root, parents of kids,
-        elements with attributes) builds the full dictionary here.
+        Dense table cells (TD/TH with optional /Headers /Scope /ID and MCID
+        kids only) take :meth:`element_dict_fast`.  Everything else (Document
+        root, mixed kids, titles/alts, OBJR) builds the full dictionary.
         """
-        if self._is_leaf(elem):
+        if self._is_fast_shape(elem):
             return self.element_dict_fast(elem)
         d: Dict[PdfName, Any] = {
             _N_TYPE: _N_STRUCTELEM,
@@ -409,58 +427,150 @@ class StructureManager:
             d[_N_A] = [attribute]
         return d
 
-    def _is_leaf(self, elem: StructElem) -> bool:
-        """True when ``elem`` has the fast serialization shape.
+    def _is_fast_shape(self, elem: StructElem) -> bool:
+        """True when ``elem`` can use :meth:`element_dict_fast`.
 
-        Covers the dense-table cell case (owned MCIDs only) and the TR case
-        (kids are element references only): no title/alt/scope headers, no
-        ``/OBJR`` dictionaries, and not the Document root (which carries
-        ``/NS``).
+        Includes plain leaves, TR with element-ref kids, **and** table cells
+        that only add /Headers /Scope /ID (the HFT/dense path).  Previously
+        every TD with /Headers fell through to the slow builder — the dump
+        hot spot for structure encode on tagged trade grids.
         """
-        return (
-            elem is not self._root_elem
+        if elem is self._root_elem or elem.title is not None or elem.alt is not None:
+            return False
+        for kid in elem.kids:
+            if isinstance(kid, dict):
+                return False
+        return True
+
+    def element_dict_fast(self, elem: StructElem) -> Any:
+        """Fast StructElem body for dense cells / TR / plain leaves.
+
+        Single-MCID table cells (the HFT/dense TD/TH shape) return a
+        :class:`RawPdfBody` of pre-encoded dictionary bytes — skipping
+        recursive encode_dict/encode_value entirely.  Other fast shapes
+        still return a normal dict.
+        """
+        kids = elem.kids
+        # Dense TD/TH: exactly one integer MCID kid + parent + page.
+        if (
+            len(kids) == 1
+            and type(kids[0]) is int
+            and elem.parent is not None
+            and elem.parent.obj_ref is not None
+            and elem.page is not None
             and elem.title is None
             and elem.alt is None
-            and elem.struct_id is None
-            and elem.scope is None
-            and not elem.headers
-            and all(not isinstance(kid, dict) for kid in elem.kids)
-        )
+        ):
+            return self._raw_table_cell_body(elem, kids[0])
 
-    def element_dict_fast(self, elem: StructElem) -> Dict[PdfName, Any]:
-        """The dictionary for a fast-shape element, built without per-key allocation.
-
-        Covers the dense-table cell case (``<< /Type /StructElem /S /TD
-        /P <parent> /K [mcid ...] /Pg <page> >>``) and the element-ref-only
-        TR case (``/K`` holds child element references).  Keys and the type
-        name come from module-level caches.
-
-        Leaf cell kids are integer MCIDs only and are frozen by render
-        time, so the kids list is reused in-place (no ``list()`` copy) to
-        cut the multi-MiB allocation rank seen under ``begin_cell``.
-        """
         d: Dict[PdfName, Any] = {
             _N_TYPE: _N_STRUCTELEM,
             _N_S: _elem_type_name(elem.type_name),
         }
-        if elem is self._root_elem:
-            d[_N_P] = self._tree_root_ref
-        elif elem.parent is not None:
+        if elem.parent is not None:
             d[_N_P] = elem.parent.obj_ref
-        kids = elem.kids
         if kids:
             first = kids[0]
-            if isinstance(first, StructElem) or isinstance(first, dict):
+            if type(first) is int:
+                d[_N_K] = kids
+            elif isinstance(first, StructElem):
+                d[_N_K] = [kid.obj_ref for kid in kids]
+            else:
                 d[_N_K] = [
                     kid.obj_ref if isinstance(kid, StructElem) else kid
                     for kid in kids
                 ]
-            else:
-                # Pure MCID list (dense TD/TH) — reuse the list object.
-                d[_N_K] = kids
         if elem.page is not None:
             d[_N_PG] = self._page_ref(elem.page)
+        if elem.struct_id is not None:
+            d[N("ID")] = elem.struct_id
+        if elem.scope is not None or elem.headers:
+            attribute: Dict[PdfName, Any] = {_N_O: _N_TABLE}
+            if elem.scope is not None:
+                attribute[_N_SCOPE] = _elem_type_name(elem.scope)
+            if elem.headers:
+                attribute[_N_HEADERS] = elem.headers
+            d[_N_A] = [attribute]
         return d
+
+    def _raw_table_cell_body(self, elem: StructElem, mcid: int) -> RawPdfBody:
+        """Pre-encoded ``<< /Type /StructElem … >>`` for one table cell.
+
+        Specialized TD/TH templates avoid per-cell bytearray churn on the
+        HFT path (12k+ cells).  Spacing matches the generic encode_dict form
+        closely enough for valid PDF; structure semantics are unchanged.
+        """
+        parent_ref = elem.parent.obj_ref.render_ref()
+        page_ref = self._page_ref(elem.page).render_ref()
+        mcid_b = b"%d" % mcid
+        # Dominant shape: TD + single /Headers entry, no /ID /Scope.
+        if (
+            elem.type_name == "TD"
+            and elem.headers
+            and len(elem.headers) == 1
+            and elem.scope is None
+            and elem.struct_id is None
+        ):
+            return RawPdfBody(
+                b"<< /Type /StructElem /S /TD /P "
+                + parent_ref
+                + b" /K ["
+                + mcid_b
+                + b"] /Pg "
+                + page_ref
+                + b" /A [<< /O /Table /Headers ["
+                + encode_string(elem.headers[0])
+                + b"] >>] >>"
+            )
+        # TH with /ID + /Scope=Column (header row).
+        if (
+            elem.type_name == "TH"
+            and elem.struct_id is not None
+            and elem.scope == "Column"
+            and not elem.headers
+        ):
+            return RawPdfBody(
+                b"<< /Type /StructElem /S /TH /P "
+                + parent_ref
+                + b" /K ["
+                + mcid_b
+                + b"] /Pg "
+                + page_ref
+                + b" /ID "
+                + encode_string(elem.struct_id)
+                + b" /A [<< /O /Table /Scope /Column >>] >>"
+            )
+        # Generic fast fallback (still no recursive encode_dict).
+        from .write import encode_name as _enc_name
+
+        body = bytearray(b"<< /Type /StructElem /S ")
+        body.extend(_enc_name(_elem_type_name(elem.type_name)))
+        body.extend(b" /P ")
+        body.extend(parent_ref)
+        body.extend(b" /K [")
+        body.extend(mcid_b)
+        body.extend(b"] /Pg ")
+        body.extend(page_ref)
+        if elem.struct_id is not None:
+            body.extend(b" /ID ")
+            body.extend(encode_string(elem.struct_id))
+        if elem.scope is not None or elem.headers:
+            body.extend(b" /A [<< /O /Table")
+            if elem.scope is not None:
+                body.extend(b" /Scope ")
+                body.extend(_enc_name(elem.scope))
+            if elem.headers:
+                body.extend(b" /Headers [")
+                first = True
+                for header in elem.headers:
+                    if not first:
+                        body.extend(b" ")
+                    body.extend(encode_string(header))
+                    first = False
+                body.extend(b"]")
+            body.extend(b" >>]")
+        body.extend(b" >>")
+        return RawPdfBody(bytes(body))
 
 def link_annotation_dict(
     rect: Sequence[float], uri: str

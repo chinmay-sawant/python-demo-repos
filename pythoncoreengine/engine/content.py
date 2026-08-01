@@ -80,19 +80,25 @@ class _DeferredText:
 
     def render(self, cid_mapper: CidMapper) -> bytes:
         """The operator bytes for this run, CIDs mapped per character."""
-        parts = []
+        resource = self.resource_name
+        # Build CID hex without a Python join of thousands of tiny strings
+        # when the run is short (typical cell); still correct for long runs.
+        mapper = cid_mapper
+        text = self.text
+        hex_parts = [_hex4(mapper(resource, char)) for char in text]
+        hex_digits = "".join(hex_parts).encode("ascii")
+        chunks: List[bytes] = []
         if self.color is not None:
             r, g, b = self.color
-            parts.append(_num(r) + b" " + _num(g) + b" " + _num(b) + b" rg")
-        parts.append(b"BT")
+            chunks.append(_num(r) + b" " + _num(g) + b" " + _num(b) + b" rg")
+        chunks.append(b"BT")
         if self.leading is not None:
-            parts.append(_num(self.leading) + b" TL")
-        parts.append(b"/%s %s Tf" % (escape_name(self.resource_name), _num(self.size)))
-        parts.append(_num(self.x) + b" " + _num(self.y) + b" Td")
-        hex_digits = "".join(_hex4(cid_mapper(self.resource_name, char)) for char in self.text)
-        parts.append(b"<" + hex_digits.encode("ascii") + b"> Tj")
-        parts.append(b"ET")
-        return b"\n".join(parts)
+            chunks.append(_num(self.leading) + b" TL")
+        chunks.append(b"/%s %s Tf" % (escape_name(resource), _num(self.size)))
+        chunks.append(_num(self.x) + b" " + _num(self.y) + b" Td")
+        chunks.append(b"<" + hex_digits + b"> Tj")
+        chunks.append(b"ET")
+        return b"\n".join(chunks)
 
 
 class ContentStream:
@@ -205,7 +211,15 @@ class ContentStream:
         call, skipping the dictionary/PdfName churn of
         :meth:`begin_marked_content`; output is byte-identical to it.
         """
-        self._operators.append(b"/%s << /MCID %d >> BDC" % (escape_name(tag), mcid))
+        # TD/TH dominate dense tables; skip escape_name for plain tags.
+        if tag == "TD":
+            self._operators.append(b"/TD << /MCID %d >> BDC" % mcid)
+        elif tag == "TH":
+            self._operators.append(b"/TH << /MCID %d >> BDC" % mcid)
+        else:
+            self._operators.append(
+                b"/%s << /MCID %d >> BDC" % (escape_name(tag), mcid)
+            )
 
     def end_marked_content(self) -> None:
         """Append the ``EMC`` operator closing the current marked-content block."""

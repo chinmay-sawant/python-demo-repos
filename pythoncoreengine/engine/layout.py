@@ -30,7 +30,7 @@ from typing import Callable, List, Optional, Protocol, Sequence, Set, Tuple
 
 from .content import ContentStream, RGB
 from .page import A4_POINTS
-from .structure import StructElem, StructureManager
+from .structure import StructElem, StructureManager, header_id_list
 from .write import N, ObjectId
 
 __all__ = [
@@ -734,15 +734,35 @@ class TableLayout:
     # ------------------------------------------------------------------
 
     def _row_height(self, cells: Sequence[str], size: float) -> float:
+        """Height of one row (delegates to :meth:`_measure_row`)."""
+        height, _lines = self._measure_row(cells, size)
+        return height
+
+    def _measure_row(
+        self, cells: Sequence[str], size: float
+    ) -> Tuple[float, List[List[str]]]:
+        """Return ``(height, per_cell_lines)`` in one pass (no double wrap)."""
         inner = size * _LINE_HEIGHT_FACTOR
-        lines = 1
+        pad2 = 2 * self.cell_padding
+        per_cell: List[List[str]] = []
+        max_lines = 1
         for cell, width in zip(cells, self.col_widths):
-            count = len(wrap_text(cell, width - 2 * self.cell_padding, size))
-            lines = max(lines, count)
-        height = lines * inner + 2 * self.cell_padding
+            max_w = width - pad2
+            if not cell:
+                per_cell.append([])
+                continue
+            if "\n" not in cell and text_width(cell, size) <= max_w:
+                lines = [cell]
+            else:
+                lines = wrap_text(cell, max_w, size)
+            per_cell.append(lines)
+            n = len(lines)
+            if n > max_lines:
+                max_lines = n
+        height = max_lines * inner + pad2
         if self.min_row_height is not None:
             height = max(height, self.min_row_height)
-        return height
+        return height, per_cell
 
     def _column_x(self, x0: float, index: int) -> float:
         return x0 + sum(self.col_widths[:index])
@@ -770,14 +790,17 @@ class TableLayout:
         )
 
         def draw_header() -> None:
-            height = self._row_height(self.header, self.header_size)
+            height, cell_lines = self._measure_row(self.header, self.header_size)
             flow.ensure_space(height)
             row_elem = (
                 manager.create_element("TR", parent=table_elem, page=flow.page_index)
                 if manager is not None
                 else None
             )
-            self._draw_row(flow, self.header, flow.y, self.header_size, column_x, x1, row_elem, -1)
+            self._draw_row(
+                flow, self.header, flow.y, self.header_size, column_x, x1,
+                row_elem, -1, height=height, cell_lines=cell_lines,
+            )
             flow.y += height
             self._draw_grid(flow, flow.y - height, flow.y, column_x)
 
@@ -789,7 +812,7 @@ class TableLayout:
             # Break pages *before* drawing the row, then redraw the header at
             # the top of the fresh page (checking the page count before the
             # break would draw the header below the first row of the page).
-            height = self._row_height(row, self.size)
+            height, cell_lines = self._measure_row(row, self.size)
             flow.ensure_space(height)
             if self.header is not None and flow.page_count != prev_pages:
                 prev_pages = flow.page_count
@@ -799,7 +822,10 @@ class TableLayout:
                 if manager is not None
                 else None
             )
-            self._draw_row(flow, row, flow.y, self.size, column_x, x1, row_elem, row_index)
+            self._draw_row(
+                flow, row, flow.y, self.size, column_x, x1,
+                row_elem, row_index, height=height, cell_lines=cell_lines,
+            )
             flow.y += height
             self._draw_grid(flow, flow.y - height, flow.y, column_x)
 
@@ -813,6 +839,9 @@ class TableLayout:
         x1: float,
         row_elem: Optional[StructElem] = None,
         row_index: int = -1,
+        *,
+        height: Optional[float] = None,
+        cell_lines: Optional[List[List[str]]] = None,
     ) -> None:
         """Draw one row band: cell backgrounds, wrapped text, cell outlines.
 
@@ -824,6 +853,9 @@ class TableLayout:
         Phase 6: cells go through :meth:`StructureManager.begin_cell` and
         :meth:`ContentStream.begin_mcid` (no per-cell dictionary churn) and
         ``row_index`` is passed in by the emitter instead of rescanned.
+
+        ``height`` / ``cell_lines`` may be supplied by :meth:`emit` from a
+        single :meth:`_measure_row` pass (avoids double wrap/measure).
         """
         is_header = cells is self.header
         font = self.header_font if is_header else self.font
@@ -845,73 +877,78 @@ class TableLayout:
                 background is not None and _is_dark(background)
             ) else (0.0, 0.0, 0.0)
         leading = size * _LINE_HEIGHT_FACTOR
-        height = self._row_height(cells, size)
+        if height is None or cell_lines is None:
+            height, cell_lines = self._measure_row(cells, size)
 
         flow.use_font(font)
         manager = flow.structure_manager()
+        stream = flow.stream
+        page_index = flow.page_index
+        pdf_bottom = flow.pdf_y(y_top + height)
         if manager is not None and background is not None:
-            flow.stream.begin_artifact({N("Type"): N("Layout")})
-            flow.stream.set_color_rgb(*background)
-            flow.stream.filled_rect(
-                flow.margins.left, flow.pdf_y(y_top + height), x1 - flow.margins.left, height
+            stream.begin_artifact({N("Type"): N("Layout")})
+            stream.set_color_rgb(*background)
+            stream.filled_rect(
+                flow.margins.left, pdf_bottom, x1 - flow.margins.left, height
             )
-            flow.stream.end_marked_content()
+            stream.end_marked_content()
         elif background is not None:
-            flow.stream.set_color_rgb(*background)
-            flow.stream.filled_rect(
-                flow.margins.left, flow.pdf_y(y_top + height), x1 - flow.margins.left, height
+            stream.set_color_rgb(*background)
+            stream.filled_rect(
+                flow.margins.left, pdf_bottom, x1 - flow.margins.left, height
             )
-        flow.stream.set_color_rgb(*text_color)
+        stream.set_color_rgb(*text_color)
 
         tag = "TH" if is_header else "TD"
+        cid = flow.font_is_cid(font)
+        pad = self.cell_padding
+        cell_text_color = None if is_header else self.cell_text_color
+        assert cell_lines is not None
         for col, cell in enumerate(cells):
             width = self.col_widths[col]
             border = self.cell_borders and not self._skip_border(row_index, col)
             if border and manager is not None:
-                flow.stream.begin_artifact({N("Type"): N("Layout")})
-                flow.stream.stroked_rect(
-                    column_x[col], flow.pdf_y(y_top + height), width, height
-                )
-                flow.stream.end_marked_content()
+                stream.begin_artifact({N("Type"): N("Layout")})
+                stream.stroked_rect(column_x[col], pdf_bottom, width, height)
+                stream.end_marked_content()
             elif border:
-                flow.stream.stroked_rect(
-                    column_x[col], flow.pdf_y(y_top + height), width, height
-                )
-            lines = wrap_text(cell, width - 2 * self.cell_padding, size)
-            if not is_header and self.cell_text_color is not None and lines:
-                cell_color = self.cell_text_color(row_index, col)
-                if cell_color is not None:
-                    flow.stream.set_color_rgb(*cell_color)
+                stream.stroked_rect(column_x[col], pdf_bottom, width, height)
+            lines = cell_lines[col]
+            if cell_text_color is not None and lines:
+                color = cell_text_color(row_index, col)
+                if color is not None:
+                    stream.set_color_rgb(*color)
             if manager is not None and lines:
-                # TH cells carry /ID + /Scope; TD cells reference the header
-                # of their column via /Headers (ISO 32000-2 14.8.5.7), so the
-                # header association survives page breaks and repeats.
-                header_id = "H%d" % col
-                cell_elem, mcid = manager.begin_cell(
+                # TH: /ID + /Scope; TD: /Headers -> column header id.
+                headers = None if is_header else header_id_list(col)
+                struct_id = ("H%d" % col) if is_header else None
+                _cell_elem, mcid = manager.begin_cell(
                     tag,
                     parent=row_elem,
-                    page_index=flow.page_index,
-                    scope="Column" if tag == "TH" else None,
-                    struct_id=header_id if tag == "TH" else None,
-                    headers=[header_id] if tag == "TD" else None,
+                    page_index=page_index,
+                    scope="Column" if is_header else None,
+                    struct_id=struct_id,
+                    headers=headers,
                 )
-                flow.stream.begin_mcid(tag, mcid)
+                stream.begin_mcid(tag, mcid)
+            n_lines = len(lines)
+            x_text = column_x[col] + pad
             for line_index, line in enumerate(lines):
                 flow.record_chars(font, line)
-                flow.stream.text_line(
+                stream.text_line(
                     line,
-                    x=column_x[col] + self.cell_padding,
+                    x=x_text,
                     y=flow.pdf_y(
                         _cell_text_baseline(
-                            y_top, height, line_index, len(lines), leading
+                            y_top, height, line_index, n_lines, leading
                         )
                     ),
                     resource_name=font,
                     size=size,
-                    cids=flow.font_is_cid(font),
+                    cids=cid,
                 )
             if manager is not None and lines:
-                flow.stream.end_marked_content()
+                stream.end_marked_content()
 
     def _skip_border(self, row_index: int, col_index: int) -> bool:
         if self.border_skip is None:
@@ -932,8 +969,11 @@ class TableLayout:
         stream.set_line_width(self.line_width)
         top = flow.pdf_y(y_top)
         bottom = flow.pdf_y(y_bottom)
-        stream.line(column_x[0], top, column_x[-1], top)
-        stream.line(column_x[0], bottom, column_x[-1], bottom)
+        x0 = column_x[0]
+        x1 = column_x[-1]
+        stream.line(x0, top, x1, top)
+        stream.line(x0, bottom, x1, bottom)
+        # Verticals: skip outer edges (already implied by horizontals span).
         for x in column_x[1:-1]:
             stream.line(x, top, x, bottom)
         if manager is not None:
