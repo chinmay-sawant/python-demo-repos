@@ -1,0 +1,15 @@
+# Financial x2 latest summary (pythoncoreengine harness)
+
+Runs: 2
+Best throughput: 0.07 ops/sec
+Worst throughput: 0.07 ops/sec
+Mean throughput: 0.07 ops/sec
+Median throughput: 0.07 ops/sec
+Stddev throughput: 0.00 ops/sec
+Mean avg latency: 14632.197 ms
+Mean peak allocated: 11.49 MB
+
+| Run | Throughput | Avg latency | Peak allocated |
+|-----|-----------:|------------:|---------------:|
+| financial_run1.txt | 0.07 ops/sec | 14691.046 ms | 11.49 MB |
+| financial_run2.txt | 0.07 ops/sec | 14573.347 ms | 11.49 MB |
