@@ -1,6 +1,7 @@
 # Phase 4 — PDF/A-4 Compliance
 
 **Status:** ✅ COMPLETED — XMP `pdfaid`, OutputIntent, ICC profiles, DefaultRGB/Gray, no trailer Info; passes test validation  
+**Python port:** ✅ COMPLETED — `engine/meta.py` (XMP), `engine/color.py` (ICC sRGB+Gray generated in code), `engine/pdfa.py` (OutputIntent/rules); 278/278 unittest green; all 3 fixtures **PASS veraPDF `-f 4`** (0 failed rules)  
 **Depends on:** Phase 3 complete (embedded fonts); phase 2 recommended for image/color cases  
 **Base plan refs:** §3, §6.2/6.4/6.6, §7, §9, §11 Phase D, §12
 

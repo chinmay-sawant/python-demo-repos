@@ -1,6 +1,7 @@
 # Phase 5 — PDF/UA-2 Tagging
 
 **Status:** ✅ COMPLETED — Structure tree, BDC/EMC, ParentTree, Namespace, MarkInfo, Lang, ViewerPreferences, StructParents, Tabs /S; dual-mode (A-4 + UA-2) verified  
+**Python port:** ✅ COMPLETED — `engine/structure.py` (StructureManager/StructElem/OBJR links), BDC/EMC in content, layout→H1/P/Table/TH/TD/Figure/Link hooks, pdfuaid+pdfaExtension in meta; 329/329 unittest green; all 6 fixtures **PASS veraPDF `-f ua2` + `-f 4`** (0 failed rules each)  
 **Depends on:** Phase 4 recommended (XMP already present); phase 1–3 required  
 **Base plan refs:** §6.2/6.4/6.5, §8, §11 Phase E, §12
 

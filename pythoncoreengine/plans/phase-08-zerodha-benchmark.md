@@ -1,5 +1,7 @@
 # Phase 8 — Zerodha-Style Benchmark (pythoncorepdfengine only)
 
+**Python port:** ✅ COMPLETED — `engine/model.py` (ContractNote/Trade, seeded expand_trades), `engine/render.py` (ZerodhaTheme colors, 2-pass footer/page-number/watermark), `engine/bench_zerodha.py` (80/15/5, BENCH_* env vars, cached/uncached/nocomply), Makefile targets; 380/380 unittest green; retail/active/hft warm-ups all **PASS veraPDF `-f 4` + `-f ua2`**; stats at `baselines/zerodha_stats_latest.txt` (~41 jobs/sec compliant, 500 jobs)
+
 **Status:** Harness on local engine (JSON → model → layout → PDF)  
 **No gopdfsuit dependency.** Templates only inspired by the Zerodha gold-standard mix.
 

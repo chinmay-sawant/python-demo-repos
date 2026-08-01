@@ -1,6 +1,7 @@
 # Phase 6 — Performance & Pooling
 
 **Status:** ⏸️ NOT STARTED — deprioritized; Phase 4 + Phase 5 gates green  
+**Python port:** ✅ COMPLETED — buffer pooling+prealloc, encode caches, leaf-elem fast path, parallel zlib (ThreadPoolExecutor), ICC/XMP/subset caches; 349/349 unittest green; veraPDF `-f 4`+`-f ua2` still 0 failures; bench persisted at `baselines/bench_python.txt` (2000×8 tagged table: layout 0.255→0.142s −44%, render 0.465→0.197s −58%, bytes unchanged, deterministic)  
 **Depends on:** Phase 4 + Phase 5 green (do not optimize non-compliant output)  
 **Base plan refs:** §5 Phase 1 buffer notes, §11 Phase F, HFT-scale lessons from gopdfsuit
 

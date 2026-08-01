@@ -1,0 +1,140 @@
+pythoncoreengine phase-6 bench -- dense tagged table (PDF/A-4 + PDF/UA-2, 2000 rows x 8 cols)
+machine: 24 vCPUs, python 3.13.10, stdlib only
+reproduce: python3 -m engine.bench --rows 2000 (appends a fresh run below)
+
+BEFORE (phase 5 baseline, serial everything)
+  layout time:        0.255 s
+  render time:        0.465 s
+  compress share:     0.025 s (5.5% of render)
+  pages:              53 (8.8 ms/page avg)
+  output bytes:       3174475 (3.03 MiB)
+  peak heap:          35.45 MiB
+
+AFTER (phase 6: name/number caches, leaf-elem fast path, begin_mcid,
+preallocated+pooled buffers, pooled xref offsets, parallel compress)
+  layout time:        0.142 s
+  render time:        0.195 s (parallel_compress default)
+  render time:        0.208 s (parallel_compress=False)
+  compress share:     0.023 s (10.8% of serial render)
+  pages:              53 (3.7 ms/page avg)
+  output bytes:       3174475 (3.03 MiB)  -- byte-identical md5 429cad7f...
+  peak heap:          35.84 MiB
+
+DELTA
+  layout:  0.255 -> 0.142 s   (-44%)
+  render:  0.465 -> 0.195 s   (-58%)
+  bytes:   3174475 -> 3174475 (unchanged, deterministic)
+  peak:    35.45 -> 35.84 MiB (+0.4 MiB, within noise)
+  determinism: fixtures and bench md5 identical across all runs
+
+================================================================================
+run 2026-08-01 12:15:02  rows=2000 cols=8
+dense table: 2000 rows x 8 cols (mode_pdfa4 + mode_pdfua2, tagged)
+  layout time:        0.141 s
+  render time:        0.198 s (parallel_compress default)
+  render time:        0.204 s (parallel_compress=False)
+  compress share:     0.022 s (10.6% of serial render)
+  pages:              53 (3.7 ms/page avg)
+  output bytes:       3174475 (3.03 MiB)
+  peak heap (tracemalloc): 35.84 MiB
+  deterministic:      yes (md5 429cad7fd4e5f64a3d79834ff866ff72)
+
+run 2026-08-01 12:15:44  rows=2000 cols=8
+dense table: 2000 rows x 8 cols (mode_pdfa4 + mode_pdfua2, tagged)
+  layout time:        0.141 s
+  render time:        0.204 s (parallel_compress default)
+  render time:        0.213 s (parallel_compress=False)
+  compress share:     0.022 s (10.5% of serial render)
+  pages:              53 (3.8 ms/page avg)
+  output bytes:       3174475 (3.03 MiB)
+  peak heap (tracemalloc): 36.53 MiB
+  deterministic:      yes (md5 429cad7fd4e5f64a3d79834ff866ff72)
+
+run 2026-08-01 12:15:52  rows=2000 cols=8
+dense table: 2000 rows x 8 cols (mode_pdfa4 + mode_pdfua2, tagged)
+  layout time:        0.138 s
+  render time:        0.198 s (parallel_compress default)
+  render time:        0.215 s (parallel_compress=False)
+  compress share:     0.022 s (10.3% of serial render)
+  pages:              53 (3.7 ms/page avg)
+  output bytes:       3174475 (3.03 MiB)
+  peak heap (tracemalloc): 36.53 MiB
+  deterministic:      yes (md5 429cad7fd4e5f64a3d79834ff866ff72)
+
+run 2026-08-01 12:15:55  rows=2000 cols=8
+dense table: 2000 rows x 8 cols (mode_pdfa4 + mode_pdfua2, tagged)
+  layout time:        0.140 s
+  render time:        0.197 s (parallel_compress default)
+  render time:        0.209 s (parallel_compress=False)
+  compress share:     0.021 s (10.2% of serial render)
+  pages:              53 (3.7 ms/page avg)
+  output bytes:       3174475 (3.03 MiB)
+  peak heap (tracemalloc): 36.53 MiB
+  deterministic:      yes (md5 429cad7fd4e5f64a3d79834ff866ff72)
+
+run 2026-08-01 12:15:58  rows=2000 cols=8
+dense table: 2000 rows x 8 cols (mode_pdfa4 + mode_pdfua2, tagged)
+  layout time:        0.137 s
+  render time:        0.197 s (parallel_compress default)
+  render time:        0.239 s (parallel_compress=False)
+  compress share:     0.023 s (9.7% of serial render)
+  pages:              53 (3.7 ms/page avg)
+  output bytes:       3174475 (3.03 MiB)
+  peak heap (tracemalloc): 36.53 MiB
+  deterministic:      yes (md5 429cad7fd4e5f64a3d79834ff866ff72)
+
+run 2026-08-01 12:16:24  rows=2000 cols=8
+dense table: 2000 rows x 8 cols (mode_pdfa4 + mode_pdfua2, tagged)
+  layout time:        0.149 s
+  render time:        0.212 s (parallel_compress default)
+  render time:        0.228 s (parallel_compress=False)
+  compress share:     0.024 s (10.4% of serial render)
+  pages:              53 (4.0 ms/page avg)
+  output bytes:       3174475 (3.03 MiB)
+  peak heap (tracemalloc): 36.19 MiB
+  deterministic:      yes (md5 429cad7fd4e5f64a3d79834ff866ff72)
+
+run 2026-08-01 12:17:41  rows=500 cols=8
+dense table: 500 rows x 8 cols (mode_pdfa4 + mode_pdfua2, tagged)
+  layout time:        0.040 s
+  render time:        0.056 s (parallel_compress default)
+  render time:        0.057 s (parallel_compress=False)
+  compress share:     0.006 s (10.0% of serial render)
+  pages:              14 (4.0 ms/page avg)
+  output bytes:       797647 (779.0 KiB)
+  peak heap (tracemalloc): 9.74 MiB
+  deterministic:      yes (md5 03a98bc2794e6c74f3007188fd509de5)
+
+run 2026-08-01 12:18:37  rows=2000 cols=8
+dense table: 2000 rows x 8 cols (mode_pdfa4 + mode_pdfua2, tagged)
+  layout time:        0.144 s
+  render time:        0.216 s (parallel_compress default)
+  render time:        0.232 s (parallel_compress=False)
+  compress share:     0.024 s (10.2% of serial render)
+  pages:              53 (4.1 ms/page avg)
+  output bytes:       3174475 (3.03 MiB)
+  peak heap (tracemalloc): 36.19 MiB
+  deterministic:      yes (md5 429cad7fd4e5f64a3d79834ff866ff72)
+
+run 2026-08-01 12:20:11  rows=2000 cols=8
+dense table: 2000 rows x 8 cols (mode_pdfa4 + mode_pdfua2, tagged)
+  layout time:        0.171 s
+  render time:        0.197 s (parallel_compress default)
+  render time:        0.218 s (parallel_compress=False)
+  compress share:     0.022 s (10.2% of serial render)
+  pages:              53 (3.7 ms/page avg)
+  output bytes:       3174475 (3.03 MiB)
+  peak heap (tracemalloc): 36.19 MiB
+  deterministic:      yes (md5 429cad7fd4e5f64a3d79834ff866ff72)
+
+run 2026-08-01 12:20:31  rows=2000 cols=8
+dense table: 2000 rows x 8 cols (mode_pdfa4 + mode_pdfua2, tagged)
+  layout time:        0.138 s
+  render time:        0.214 s (parallel_compress default)
+  render time:        0.210 s (parallel_compress=False)
+  compress share:     0.021 s (10.1% of serial render)
+  pages:              53 (4.0 ms/page avg)
+  output bytes:       3174475 (3.03 MiB)
+  peak heap (tracemalloc): 36.19 MiB
+  deterministic:      yes (md5 429cad7fd4e5f64a3d79834ff866ff72)
+

@@ -1,6 +1,7 @@
 # Phase 3 — Font Embedding Pipeline
 
 **Status:** ✅ COMPLETED — TTF parser, subsetter, Liberation map, CID font emit all implemented; integrated with A-4 mode in engine.go  
+**Python port:** ✅ COMPLETED — `engine/font.py` (TTFFont parser incl. cmap 4/6/12 + composites, TTFSubsetter, FontEntry/FontChain, FontRegistry w/ Liberation map, ToUnicode + CIDSet); 216/216 unittest green, fixtures deterministic  
 **Depends on:** Phase 1 complete (phase 2 recommended)  
 **Base plan refs:** §4 (`font`), §7.5, §11 Phase C, Liberation map in base plan
 

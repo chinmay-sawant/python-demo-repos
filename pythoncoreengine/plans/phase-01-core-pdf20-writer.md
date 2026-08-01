@@ -1,6 +1,7 @@
 # Phase 1 — Core PDF 2.0 Writer
 
 **Status:** ✅ COMPLETED — all items implemented and tested  
+**Python port:** ✅ COMPLETED — `engine/` package (write.py, doc.py, page.py, content.py), 65/65 unittest green; `python3 -m unittest discover -s engine/tests`  
 **Depends on:** None  
 **Base plan refs:** §4 (`doc`, `write`, `page`), §5 Phase 0–1/5–6 (minimal), §6.1–6.3, §6.6–6.7, §11 Phase A
 

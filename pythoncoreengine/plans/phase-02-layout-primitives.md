@@ -1,6 +1,7 @@
 # Phase 2 — Layout Primitives (Untagged)
 
 **Status:** ✅ COMPLETED — packages created (`layout`, `image`); not yet wired into `engine.Generate()`  
+**Python port:** ✅ COMPLETED — `engine/layout.py`, `engine/image.py`, flow/multi-page in `doc.py`, FlateDecode default ON; 136/136 unittest green  
 **Depends on:** Phase 1 complete  
 **Base plan refs:** §4 (`layout`, `image`, `content`), §5 Phase 2–3 (untagged), §11 Phase B
 

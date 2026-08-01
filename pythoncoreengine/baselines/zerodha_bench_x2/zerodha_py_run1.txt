@@ -1,0 +1,11 @@
+run 2026-08-01 12:32:14  iterations=30 seed=42 cache=1 compliant=True workers=48
+zerodha workload: 30 jobs (80/15/5 retail/active/hft) pdfa4+pdfua2 cache=on
+  total time:        0.484 s
+  jobs/sec:          62.01 (workers=48, serial)
+  retail    25 jobs    0.12 s (   4.9 ms/job,    1 pages,   34.2 KiB)
+  active     4 jobs    0.05 s (  13.1 ms/job,    2 pages,   77.6 KiB)
+  hft        1 jobs    0.31 s ( 309.5 ms/job,   39 pages,   2.35 MiB)
+  output bytes:      total 2579591 (2.46 MiB)
+  compliance:        pdfa4+pdfua2 (embedded fonts)
+  cache:             on (seed 42)
+  deterministic:     yes (retail md5 9bbcd87b8c1f57640c17200714844112)
