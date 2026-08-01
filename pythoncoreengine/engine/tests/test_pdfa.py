@@ -190,7 +190,20 @@ class TestFontsEmbedded(unittest.TestCase):
         self.assertIn(b"/Subtype /Type0", self.data)
         self.assertIn(b"/Subtype /CIDFontType2", self.data)
         self.assertIn(b"/FontFile2", self.data)
-        self.assertIn(b"/CIDSet", self.data)
+
+    def test_cidset_disallowed_under_a4(self) -> None:
+        # ISO 19005-4 forbids the CIDSet entry (PDF/A-2/3-only); strict
+        # validators (Adobe Preflight) flag it, so A-4 builds must omit it.
+        self.assertNotIn(b"/CIDSet", self.data)
+
+    def test_cidset_kept_outside_a4(self) -> None:
+        builder = DocumentBuilder(
+            created=FIXED_CREATED, mode_embed_fonts=True
+        )
+        flow = builder.flow()
+        flow.text("keep cidset", size=12)
+        data = builder.render()
+        self.assertIn(b"/CIDSet", data)
 
     def test_fonts_forced_embedded_without_embed_flag(self) -> None:
         builder = DocumentBuilder(created=FIXED_CREATED, mode_pdfa4=True)

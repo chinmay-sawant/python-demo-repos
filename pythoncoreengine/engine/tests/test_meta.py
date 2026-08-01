@@ -82,9 +82,9 @@ class TestProperties(unittest.TestCase):
         self.packet = _packet()
 
     def test_dates_are_iso8601(self) -> None:
-        self.assertIn(b"<xmp:CreateDate>2026-08-01T12:00:00</xmp:CreateDate>", self.packet)
-        self.assertIn(b"<xmp:ModifyDate>2026-08-01T12:00:00</xmp:ModifyDate>", self.packet)
-        self.assertIn(b"<xmp:MetadataDate>2026-08-01T12:00:00</xmp:MetadataDate>", self.packet)
+        self.assertIn(b"<xmp:CreateDate>2026-08-01T12:00:00Z</xmp:CreateDate>", self.packet)
+        self.assertIn(b"<xmp:ModifyDate>2026-08-01T12:00:00Z</xmp:ModifyDate>", self.packet)
+        self.assertIn(b"<xmp:MetadataDate>2026-08-01T12:00:00Z</xmp:MetadataDate>", self.packet)
 
     def test_producer_and_creator_tool(self) -> None:
         self.assertIn(b"<pdf:Producer>pythoncoreengine 0.1.0</pdf:Producer>", self.packet)
@@ -144,7 +144,7 @@ class TestXMPDict(unittest.TestCase):
         self.assertEqual(values["pdfaid:part"], "4")
         self.assertEqual(values["pdfaid:rev"], "2020")
         self.assertEqual(values["dc:format"], "application/pdf")
-        self.assertEqual(values["xmp:CreateDate"], "2026-08-01T12:00:00")
+        self.assertEqual(values["xmp:CreateDate"], "2026-08-01T12:00:00Z")
         self.assertTrue(values["xmpMM:DocumentID"].startswith("uuid:"))
         self.assertTrue(values["xmpMM:InstanceID"].startswith("uuid:"))
 

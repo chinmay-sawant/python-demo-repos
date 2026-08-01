@@ -1,4 +1,4 @@
-"""ICC colour profiles generated in code: sRGB and Gray (ICC v2.1, stdlib only).
+"""ICC colour profiles generated in code: sRGB and Gray (ICC v2.4, stdlib only).
 
 Phase 4 needs embedded ICC profiles so the document can claim PDF/A-4:
 every device colour space used in the document is tied to a calibrated
@@ -16,11 +16,19 @@ Profile structure (ICC v2, "ICC.1:2003" class):
 * Tag data, 4-byte aligned:
   - ``desc`` / ``cprt``: textDescriptionType ASCII blocks
   - ``wtpt``: XYZType (media white point, D50)
+  - ``bkpt``: XYZType (media black point, 0 0 0) -- required by strict
+    ICC validators for the display class
+  - ``chad``: s15Fixed16ArrayType chromatic-adaptation matrix (identity,
+    D50-to-D50) -- required for v2.4 display profiles
   - ``rXYZ`` / ``gXYZ`` / ``bXYZ``: XYZType primaries (sRGB only)
   - ``rTRC`` / ``gTRC`` / ``bTRC``: curveType 256-entry LUTs of the
     sRGB transfer function (sRGB only)
   - ``kTRC``: curveType gamma-2.2 LUT (Gray only; the ICC signature is
     the 4-byte ``kTRC`` -- "grayTRC" is only the prose name)
+
+The profile is ICC v2.4 (``0x02400000``, ICC.1:2001-04) -- the newest
+revision of the v2 family -- which is what strict validators (e.g. Adobe
+Preflight) expect from a v2-class profile.
 
 Everything is deterministic: fixed profile date, fixed values.
 
@@ -38,8 +46,10 @@ from typing import List, Optional, Sequence, Tuple
 
 __all__ = ["ICCProfile", "ZerodhaTheme", "gray_icc", "hex_to_rgb", "srgb_icc"]
 
-# ICC v2.1 version field (major 2, minor 1, patch 0, reserved 0).
-_ICC_VERSION_2_1 = 0x02100000
+# ICC v2.4 version field (major 2, minor 4, patch 0, reserved 0): the
+# newest revision of the ICC.1:2001-04 family, accepted by the strictest
+# ICC v2 parsers (Adobe Preflight included).
+_ICC_VERSION_2_4 = 0x02400000
 
 # Fixed profile creation date so output is byte-reproducible.
 _ICC_PROFILE_DATE = (2026, 8, 1, 12, 0, 0)
@@ -123,6 +133,20 @@ def _curve_tag(values: Sequence[int]) -> bytes:
     )
 
 
+def _sf32_tag(values: Sequence[int]) -> bytes:
+    """An s15Fixed16ArrayType tag holding ``values`` in s15Fixed16."""
+    return b"sf32" + struct.pack(">I", 0) + struct.pack(">%dI" % len(values), *values)
+
+
+# The chromatic-adaptation matrix: D50-to-D50 is the identity, which is
+# the standard value for profiles whose PCS is D50-adapted XYZ.
+_CHAD_IDENTITY = (
+    0x00010000, 0x00000000, 0x00000000,
+    0x00000000, 0x00010000, 0x00000000,
+    0x00000000, 0x00000000, 0x00010000,
+)
+
+
 # ---------------------------------------------------------------------------
 # Profile assembly
 # ---------------------------------------------------------------------------
@@ -136,7 +160,7 @@ def _build_icc(
     trc: List[int],
     primaries: Optional[Tuple[Tuple[int, int, int], ...]] = None,
 ) -> bytes:
-    """Assemble a complete ICC v2.1 profile byte stream (deterministic).
+    """Assemble a complete ICC v2.4 profile byte stream (deterministic).
 
     Args:
         description: ASCII text for the ``desc`` tag.
@@ -155,6 +179,8 @@ def _build_icc(
         (b"desc", _text_tag(description)),
         (b"cprt", _text_tag(copyright_text)),
         (b"wtpt", _xyz_tag(_WTDT_X, _WTDT_Y, _WTDT_Z)),
+        (b"bkpt", _xyz_tag(0, 0, 0)),
+        (b"chad", _sf32_tag(_CHAD_IDENTITY)),
     ]
     if is_rgb:
         if primaries is None or len(primaries) != 3:
@@ -175,7 +201,7 @@ def _build_icc(
     header = bytearray()
     header += struct.pack(">I", size)
     header += b"Lino"  # preferred CMM
-    header += struct.pack(">I", _ICC_VERSION_2_1)
+    header += struct.pack(">I", _ICC_VERSION_2_4)
     header += b"mntr"  # display device profile
     header += color_space
     header += b"XYZ "  # PCS

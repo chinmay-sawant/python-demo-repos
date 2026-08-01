@@ -72,7 +72,7 @@ _NS_PDFUAID = "http://www.aiim.org/pdfua/ns/id/"
 _NS_PDFA_EXTENSION = "http://www.aiim.org/pdfa/ns/extension/"
 _NS_XMPMM = "http://ns.adobe.com/xap/1.0/mm/"
 
-_ISO_8601 = "%Y-%m-%dT%H:%M:%S"
+_ISO_8601 = "%Y-%m-%dT%H:%M:%SZ"
 
 # A dc:title value as an rdf:Alt with an x-default item: the XMP property
 # model expects dc:title to be a language-alternative array, and UA-2
@@ -113,7 +113,11 @@ _PDFA_EXTENSION_SCHEMAS = (
 
 
 def _iso8601(when: datetime.datetime) -> str:
-    """Format ``when`` as ISO 8601 ``YYYY-MM-DDTHH:MM:SS``."""
+    """Format ``when`` as ISO 8601 UTC: ``YYYY-MM-DDTHH:MM:SSZ``.
+
+    PDF/A-4 (and XMP generally) requires a timezone on every date; the
+    naive timestamp passed by the builders is treated as UTC.
+    """
     return when.strftime(_ISO_8601)
 
 

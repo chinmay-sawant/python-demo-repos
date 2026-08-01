@@ -8,15 +8,17 @@ document actually used (:class:`TTFSubsetter`), the per-document registry
 that tracks character usage and generates subsets once all content is known
 (:class:`FontRegistry`) and the Liberation font substitution map.
 
-Emitted object chain for one embedded font (six indirect objects):
+Emitted object chain for one embedded font (six indirect objects; the
+CIDSet stream is omitted when the document claims PDF/A-4, where ISO
+19005-4 disallows the entry):
 
 * Type0 font dict (``/Subtype /Type0``, ``/Encoding /Identity-H``,
   ``/DescendantFonts``, ``/ToUnicode``)
 * CIDFont (``/Subtype /CIDFontType2``, ``/CIDSystemInfo``, ``/FontDescriptor``,
   ``/DW``, ``/W``, ``/CIDToGIDMap /Identity``)
-* FontDescriptor (``/FontName``, metrics, ``/FontFile2``, ``/CIDSet``)
+* FontDescriptor (``/FontName``, metrics, ``/FontFile2``, optional ``/CIDSet``)
 * FontFile2 stream: the FlateDecode-compressed subset TTF
-* CIDSet stream: one bit per subset glyph (required by PDF/A)
+* CIDSet stream: one bit per subset glyph (non-A-4 builds only)
 * ToUnicode stream: a ``/Adobe-Identity-UCS`` CMap mapping CIDs to UTF-16BE
 
 Everything is deterministic: subsets iterate sorted characters and sorted
@@ -851,10 +853,17 @@ class FontEntry:
             N("CIDToGIDMap"): N("Identity"),
         }
 
-    def descriptor_dict(self, font_file_ref: ObjectId, cidset_ref: ObjectId) -> Dict[PdfName, Any]:
-        """The FontDescriptor dictionary referencing the subset streams."""
+    def descriptor_dict(
+        self, font_file_ref: ObjectId, cidset_ref: Optional[ObjectId]
+    ) -> Dict[PdfName, Any]:
+        """The FontDescriptor dictionary referencing the subset streams.
+
+        ``cidset_ref`` is None when the document claims PDF/A-4: ISO
+        19005-4 disallows the ``CIDSet`` entry (it was PDF/A-2/3-only), and
+        strict validators flag it, so compliant builds omit the key.
+        """
         metrics = self.metrics
-        return {
+        result: Dict[PdfName, Any] = {
             N("Type"): N("FontDescriptor"),
             N("FontName"): N(self.subset_name or self.face_name),
             N("Flags"): metrics["flags"],
@@ -866,8 +875,10 @@ class FontEntry:
             N("StemV"): metrics["stem_v"],
             N("XHeight"): metrics["x_height"],
             N("FontFile2"): font_file_ref,
-            N("CIDSet"): cidset_ref,
         }
+        if cidset_ref is not None:
+            result[N("CIDSet")] = cidset_ref
+        return result
 
     def font_file2_stream(self) -> Tuple[bytes, Dict[PdfName, Any]]:
         """The FlateDecode FontFile2 stream data and stream dict."""
@@ -876,10 +887,11 @@ class FontEntry:
         return compressed_stream(self.subset_bytes), {N("Filter"): N("FlateDecode")}
 
     def cidset_stream(self) -> Tuple[bytes, Dict[PdfName, Any]]:
-        """The CIDSet stream data and stream dict (PDF/A requires it).
+        """The CIDSet stream data and stream dict (non-A-4 builds).
 
         One bit per subset glyph, most-significant bit first, all set since
-        every glyph in the subset is present.
+        every glyph in the subset is present.  PDF/A-4 (ISO 19005-4)
+        disallows the entry, so the A-4 path never emits it.
         """
         count = len(self.require_subset().ordered_gids)
         bits = bytearray((count + 7) // 8)
@@ -957,8 +969,9 @@ class FontChain:
     :meth:`reserve_ids` + :meth:`attach` (used by build_minimal_document).
     """
 
-    def __init__(self, entry: FontEntry) -> None:
+    def __init__(self, entry: FontEntry, cidset: bool = True) -> None:
         self.entry = entry
+        self.cidset = cidset
         self.type0_ref: Optional[ObjectId] = None
         self.cid_ref: Optional[ObjectId] = None
         self.descriptor_ref: Optional[ObjectId] = None
@@ -967,7 +980,11 @@ class FontChain:
         self.tounicode_ref: Optional[ObjectId] = None
 
     def reserve_thunks(self, builder: Any) -> ObjectId:
-        """Reserve the six objects through ``builder``'s deferred-queue API."""
+        """Reserve the objects through ``builder``'s deferred-queue API.
+
+        The CIDSet stream is skipped when ``cidset`` is False (PDF/A-4
+        disallows the entry; see :meth:`FontEntry.descriptor_dict`).
+        """
         self.type0_ref = builder._reserve_value(
             lambda: self.entry.type0_dict(self.cid_ref, self.tounicode_ref)
         )
@@ -978,22 +995,24 @@ class FontChain:
             lambda: self.entry.descriptor_dict(self.font_file_ref, self.cidset_ref)
         )
         self.font_file_ref = builder._reserve_stream(lambda: self.entry.font_file2_stream())
-        self.cidset_ref = builder._reserve_stream(lambda: self.entry.cidset_stream())
+        if self.cidset:
+            self.cidset_ref = builder._reserve_stream(lambda: self.entry.cidset_stream())
         self.tounicode_ref = builder._reserve_stream(lambda: self.entry.tounicode_stream())
         return self.type0_ref
 
     def reserve_ids(self, doc: Any) -> ObjectId:
-        """Reserve six consecutive object IDs (type0 first)."""
+        """Reserve the object IDs (type0 first); CIDSet only when enabled."""
         self.type0_ref = doc.reserve()
         self.cid_ref = doc.reserve()
         self.descriptor_ref = doc.reserve()
         self.font_file_ref = doc.reserve()
-        self.cidset_ref = doc.reserve()
+        if self.cidset:
+            self.cidset_ref = doc.reserve()
         self.tounicode_ref = doc.reserve()
         return self.type0_ref
 
     def attach(self, doc: Any) -> None:
-        """Attach all six bodies in ascending ID order."""
+        """Attach all bodies in ascending ID order."""
         doc.set_value(
             self.type0_ref, self.entry.type0_dict(self.cid_ref, self.tounicode_ref)
         )
@@ -1004,8 +1023,9 @@ class FontChain:
         )
         data, extra = self.entry.font_file2_stream()
         doc.set_stream(self.font_file_ref, data, extra)
-        data, extra = self.entry.cidset_stream()
-        doc.set_stream(self.cidset_ref, data, extra)
+        if self.cidset_ref is not None:
+            data, extra = self.entry.cidset_stream()
+            doc.set_stream(self.cidset_ref, data, extra)
         data, extra = self.entry.tounicode_stream()
         doc.set_stream(self.tounicode_ref, data, extra)
 

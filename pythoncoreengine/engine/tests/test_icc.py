@@ -1,14 +1,15 @@
 """Unit tests for the in-code ICC profile builder (engine.color).
 
-Verifies both generated profiles are structurally valid ICC v2.1:
-the header fields (size field matching the byte length, version 2.1,
+Verifies both generated profiles are structurally valid ICC v2.4:
+the header fields (size field matching the byte length, version 2.4,
 ``mntr`` class, ``acsp`` file signature, D50 illuminant), the profile ID
 (md5 of the whole profile with the ID field zeroed), a sane tag table
-(4-byte-aligned, in-bounds entries covering the required tag set), the
-D50 white point and sRGB primary values as s15Fixed16, and the 256-entry
-tone-response curves matching the sRGB / gamma-2.2 transfer functions.
-``ICCProfile.components`` / ``.alternate`` carry the PDF-side parameters
-(``/N`` and ``/Alternate``).
+(4-byte-aligned, in-bounds entries covering the required tag set --
+including the ``bkpt`` and ``chad`` tags strict validators require for
+the display class), the D50 white point and sRGB primary values as
+s15Fixed16, and the 256-entry tone-response curves matching the sRGB /
+gamma-2.2 transfer functions.  ``ICCProfile.components`` / ``.alternate``
+carry the PDF-side parameters (``/N`` and ``/Alternate``).
 """
 
 from __future__ import annotations
@@ -25,6 +26,8 @@ _REQUIRED_SRGB_TAGS = (
     b"desc",
     b"cprt",
     b"wtpt",
+    b"bkpt",
+    b"chad",
     b"rXYZ",
     b"gXYZ",
     b"bXYZ",
@@ -32,7 +35,7 @@ _REQUIRED_SRGB_TAGS = (
     b"gTRC",
     b"bTRC",
 )
-_REQUIRED_GRAY_TAGS = (b"desc", b"cprt", b"wtpt", b"kTRC")
+_REQUIRED_GRAY_TAGS = (b"desc", b"cprt", b"wtpt", b"bkpt", b"chad", b"kTRC")
 
 
 def _tags(profile: bytes) -> Dict[bytes, Tuple[int, int]]:
@@ -67,11 +70,12 @@ class TestICCHeader(unittest.TestCase):
             self.assertEqual(profile[12:16], b"mntr")
             self.assertEqual(profile[20:24], b"XYZ ")
 
-    def test_version_is_2_1(self) -> None:
+    def test_version_is_2_4(self) -> None:
         for profile in (self.srgb.data, self.gray.data):
+            # 2.4.0 as one big-endian field: minor 4.0 encodes as 0x40.
             self.assertEqual(profile[8], 2)
-            self.assertEqual(profile[9], 0x10)
-            self.assertEqual(struct.unpack(">I", profile[8:12])[0], 0x02100000)
+            self.assertEqual(profile[9], 0x40)
+            self.assertEqual(struct.unpack(">I", profile[8:12])[0], 0x02400000)
 
     def test_size_field_matches_length(self) -> None:
         for profile in (self.srgb.data, self.gray.data):

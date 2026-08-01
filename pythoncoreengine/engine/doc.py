@@ -341,7 +341,7 @@ def build_minimal_document(
         entry = registry.entry("F1", "Helvetica")
         entry.add_chars(text)
         registry.generate_subsets()
-        chain = FontChain(entry)
+        chain = FontChain(entry, cidset=not mode_pdfa4)
 
     catalog_ref = doc.reserve()
     pages_ref = doc.reserve()
@@ -419,7 +419,7 @@ def _build_compliant_minimal_document(
     entry = registry.entry("F1", "Helvetica")
     entry.add_chars(text)
     registry.generate_subsets()
-    chain = FontChain(entry)
+    chain = FontChain(entry, cidset=not mode_pdfa4)
     chain_host = SimpleNamespace(
         _reserve_value=reserve_value, _reserve_stream=reserve_stream
     )
@@ -889,7 +889,7 @@ class DocumentBuilder:
             raise ValueError(f"unknown font resource {name!r}")
         if self._doc.mode_embed_fonts:
             entry = self._font_registry.entry(name, base_font)
-            ref = FontChain(entry).reserve_thunks(self)
+            ref = FontChain(entry, cidset=not self._pdfa).reserve_thunks(self)
         else:
             font = Font(resource_name=name, base_font=base_font)
             ref = self._reserve_value(lambda f=font: f.to_dict())
